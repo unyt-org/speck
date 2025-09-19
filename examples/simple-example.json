@@ -1,17 +1,17 @@
 {
-	"$schema": "../StructureDefinition.schema.json",
-	"name": "example 1",
-	"sections": [
-		{
-			"name": "section1",
-			"fields": [
-				{
-					"name": "field1",
-					"byteSize": 4,
-					"category": "red",
-					"parser": {"type": "int"}
-				}
-			]
-		}
-	]
+    "$schema": "../speck.schema.json",
+    "name": "example 1",
+    "sections": [
+        {
+            "name": "section1",
+            "fields": [
+                {
+                    "name": "field1",
+                    "byteSize": 4,
+                    "category": "red",
+                    "parser": { "type": "int" }
+                }
+            ]
+        }
+    ]
 }

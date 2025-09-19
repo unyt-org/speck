@@ -1,0 +1,46 @@
+name: Publish
+
+on:
+    release:
+        types: [published]
+jobs:
+    publish-jsr:
+        runs-on: ubuntu-latest
+        name: Publish to JSR
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: "true"
+            # publish to JSR
+            - name: Publish package
+              run: npx jsr publish
+    publish-npm:
+        runs-on: ubuntu-latest
+        name: Publish to NPM
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: "true"
+            - name: Install Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: v2.x
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "24.x"
+                  registry-url: "https://registry.npmjs.org"
+
+            - name: Build for NPM
+              run: deno task build-npm
+
+            - name: Publish to NPM
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: cd npm && npm publish --provenance --access public

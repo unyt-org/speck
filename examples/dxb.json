@@ -1,236 +1,253 @@
 {
-	"$schema": "../StructureDefinition.schema.json",
-	"name": "DATEX Binary Protocol (DXB)",
-	"sections": [
-		{
-			"name": "Routing Header",
-			"fields": [
-				{
-					"name": "Magic Number",
-					"category": "purple",
-					"byteSize": 2
-				},
-				{
-					"name": "Version",
-					"category": "purple",
-					"byteSize": 1,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Block Size",
-					"category": "red",
-					"byteSize": 2,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Flags",
-					"category": "red",
-					"byteSize": 1,
-					"bitMasks": [
-						{
-							"name": "Signature Type",
-							"length": 2,
-							"parser": {
-								"type": "enum",
-								"mapping": {
-									"0b00": "None",
-									"0b10": "Unencrypted",
-									"0b11": "Encrypted",
-									"0b01": "Invalid"
-								}
-							}
-						},
-						{
-							"name": "Encryption Type",
-							"length": 1,
-							"parser": { 
-								"type": "enum",
-								"mapping": {
-									"0": "None",
-									"1": "Encrypted"
-								}
-							}
-						},
-						{
-							"name": "Receiver Type",
-							"id": "receiver-type",
-							"length": 2,
-							"parser": {
-								"type": "enum",
-								"mapping": {
-									"0b00": "None",
-									"0b01": "Pointer",
-									"0b10": "Receivers",
-									"0b11": "ReceiversWithKeys"
-								}
-							}
-						},
-						{
-							"name": "Is Bounce Back",
-							"length": 1,
-							"parser": { "type": "boolean" }
-						},
-						{
-							"name": "Has Checksum",
-							"length": 1,
-							"parser": { "type": "boolean" }
-						}
-					]
-				},
-				{
-					"name": "Checksum",
-					"category": "yellow",
-					"byteSize": 4,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Distance",
-					"category": "green",
-					"byteSize": 1,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "TTL",
-					"category": "green",
-					"byteSize": 1,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Sender",
-					"category": "blue",
-					"byteSize": 21,
-					"parser": { "type": "endpoint" }
-				},
-				{
-					"name": "Receivers Pointer ID",
-					"category": "dark_blue",
-					"byteSize": 26,
-					"if": { "includes": ["receiver-type", ["Pointer", "ReceiversWithKeys"]] },
-					"parser": { "type": "pointer" }
-				},
-				{
-					"name": "Number of Receivers",
-					"id": "receiver-count",
-					"category": "blue",
-					"byteSize": 1,
-					"if": { "includes": ["receiver-type", ["Receivers", "ReceiversWithKeys"]] },
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Receivers",
-					"category": "blue",
-					"byteSize": 21,
-					"repeat": "receiver-count",
-					"if": { "includes": ["receiver-type", ["Receivers", "ReceiversWithKeys"]] },
-					"parser": { "type": "endpoint" }
-				},
-				{
-					"name": "Receivers with Keys",
-					"category": "dark_blue",
-					"byteSize": 21,
-					"repeat": "receiver-count",
-					"if": { "includes": ["receiver-type", ["ReceiversWithKeys"]] },
-					"parser": { "type": "endpoint" }
-				},
-				{
-					"name": "Signature",
-					"category": "yellow",
-					"byteSize": 255,
-					"if": { "equals": ["signature-type", "Unencrypted"] },
-					"parser": { "type": "string" }
-				},
-				{
-					"name": "Encrypted Signature",
-					"category": "yellow",
-					"byteSize": 300,
-					"if": { "equals": ["signature-type", "Encrypted"] },
-					"parser": { "type": "string" }
-				}
-			]
-		},
-		{
-			"name": "Block Header",
-			"fields": [
-				{
-					"name": "Context ID",
-					"category": "purple",
-					"byteSize": 4,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Section Index",
-					"category": "purple",
-					"byteSize": 2,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Block Number",
-					"category": "purple",
-					"byteSize": 2,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Flags & Timestamp",
-					"category": "red",
-					"byteSize": 8
-				},
-				{
-					"name": "Lifetime",
-					"category": "red",
-					"byteSize": 4,
-					"parser": { "type": "uint" }
-				},
-				{
-					"name": "Repr",
-					"category": "blue",
-					"byteSize": 21,
-					"parser": { "type": "endpoint" }
-				},
-				{
-					"name": "IV",
-					"category": "yellow",
-					"byteSize": 16
-				}
-			]
-		},
-		{
-			"name": "Encrypted Header",
-			"fields": [
-				{
-					"name": "Flags",
-					"category": "red",
-					"byteSize": 1,
-					"bitMasks": [
-						{
-							"name": "User Agent",
-							"length": 4
-						},
-						{
-							"id": "has-on-behalf-of",
-							"name": "Has On Behalf Of",
-							"length": 1,
-							"parser": { "type": "boolean" }
-						}
-					]
-				},
-				{
-					"name": "On Behalf Of",
-					"category": "blue",
-					"byteSize": 21,
-					"if": { "equals": ["has-on-behalf-of", true] },
-					"parser": { "type": "endpoint" }
-				}
-			]
-		},
-		{
-			"name": "Body",
-			"fields": [
-				{
-					"name": "Payload",
-					"category": "green",
-					"byteSize": 0
-				}
-			]
-		}
-	]
+    "$schema": "../speck.schema.json",
+    "name": "DATEX Binary Protocol (DXB)",
+    "sections": [
+        {
+            "name": "Routing Header",
+            "fields": [
+                {
+                    "name": "Magic Number",
+                    "category": "purple",
+                    "byteSize": 2
+                },
+                {
+                    "name": "Version",
+                    "category": "purple",
+                    "byteSize": 1,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Block Size",
+                    "category": "red",
+                    "byteSize": 2,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Flags",
+                    "category": "red",
+                    "byteSize": 1,
+                    "bitMasks": [
+                        {
+                            "name": "Signature Type",
+                            "length": 2,
+                            "parser": {
+                                "type": "enum",
+                                "mapping": {
+                                    "0b00": "None",
+                                    "0b10": "Unencrypted",
+                                    "0b11": "Encrypted",
+                                    "0b01": "Invalid"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Encryption Type",
+                            "length": 1,
+                            "parser": {
+                                "type": "enum",
+                                "mapping": {
+                                    "0": "None",
+                                    "1": "Encrypted"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Receiver Type",
+                            "id": "receiver-type",
+                            "length": 2,
+                            "parser": {
+                                "type": "enum",
+                                "mapping": {
+                                    "0b00": "None",
+                                    "0b01": "Pointer",
+                                    "0b10": "Receivers",
+                                    "0b11": "ReceiversWithKeys"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Is Bounce Back",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Has Checksum",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        }
+                    ]
+                },
+                {
+                    "name": "Checksum",
+                    "category": "yellow",
+                    "byteSize": 4,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Distance",
+                    "category": "green",
+                    "byteSize": 1,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "TTL",
+                    "category": "green",
+                    "byteSize": 1,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Sender",
+                    "category": "blue",
+                    "byteSize": 21,
+                    "parser": { "type": "endpoint" }
+                },
+                {
+                    "name": "Receivers Pointer ID",
+                    "category": "dark_blue",
+                    "byteSize": 26,
+                    "if": {
+                        "includes": [
+                            "receiver-type",
+                            ["Pointer", "ReceiversWithKeys"]
+                        ]
+                    },
+                    "parser": { "type": "pointer" }
+                },
+                {
+                    "name": "Number of Receivers",
+                    "id": "receiver-count",
+                    "category": "blue",
+                    "byteSize": 1,
+                    "if": {
+                        "includes": [
+                            "receiver-type",
+                            ["Receivers", "ReceiversWithKeys"]
+                        ]
+                    },
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Receivers",
+                    "category": "blue",
+                    "byteSize": 21,
+                    "repeat": "receiver-count",
+                    "if": {
+                        "includes": [
+                            "receiver-type",
+                            ["Receivers", "ReceiversWithKeys"]
+                        ]
+                    },
+                    "parser": { "type": "endpoint" }
+                },
+                {
+                    "name": "Receivers with Keys",
+                    "category": "dark_blue",
+                    "byteSize": 21,
+                    "repeat": "receiver-count",
+                    "if": {
+                        "includes": ["receiver-type", ["ReceiversWithKeys"]]
+                    },
+                    "parser": { "type": "endpoint" }
+                },
+                {
+                    "name": "Signature",
+                    "category": "yellow",
+                    "byteSize": 255,
+                    "if": { "equals": ["signature-type", "Unencrypted"] },
+                    "parser": { "type": "string" }
+                },
+                {
+                    "name": "Encrypted Signature",
+                    "category": "yellow",
+                    "byteSize": 300,
+                    "if": { "equals": ["signature-type", "Encrypted"] },
+                    "parser": { "type": "string" }
+                }
+            ]
+        },
+        {
+            "name": "Block Header",
+            "fields": [
+                {
+                    "name": "Context ID",
+                    "category": "purple",
+                    "byteSize": 4,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Section Index",
+                    "category": "purple",
+                    "byteSize": 2,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Block Number",
+                    "category": "purple",
+                    "byteSize": 2,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Flags & Timestamp",
+                    "category": "red",
+                    "byteSize": 8
+                },
+                {
+                    "name": "Lifetime",
+                    "category": "red",
+                    "byteSize": 4,
+                    "parser": { "type": "uint" }
+                },
+                {
+                    "name": "Repr",
+                    "category": "blue",
+                    "byteSize": 21,
+                    "parser": { "type": "endpoint" }
+                },
+                {
+                    "name": "IV",
+                    "category": "yellow",
+                    "byteSize": 16
+                }
+            ]
+        },
+        {
+            "name": "Encrypted Header",
+            "fields": [
+                {
+                    "name": "Flags",
+                    "category": "red",
+                    "byteSize": 1,
+                    "bitMasks": [
+                        {
+                            "name": "User Agent",
+                            "length": 4
+                        },
+                        {
+                            "id": "has-on-behalf-of",
+                            "name": "Has On Behalf Of",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        }
+                    ]
+                },
+                {
+                    "name": "On Behalf Of",
+                    "category": "blue",
+                    "byteSize": 21,
+                    "if": { "equals": ["has-on-behalf-of", true] },
+                    "parser": { "type": "endpoint" }
+                }
+            ]
+        },
+        {
+            "name": "Body",
+            "fields": [
+                {
+                    "name": "Payload",
+                    "category": "green",
+                    "byteSize": 0
+                }
+            ]
+        }
+    ]
 }
