@@ -1,5 +1,7 @@
 import { parseStructureWithReader, type Uint8ArrayReader } from "./parser.ts";
-import type { ParsedStructure, StructureDefinition } from "./types.ts";
+import type { ParsedStructure, FieldDefinition,  StructureDefinition, SectionDefinition } from "./types.ts";
+import { tablemark } from "tablemark";
+    
 
 export type CustomBytes = {
     [key: string]: CustomBytes | Record<string, number[]>;
@@ -72,4 +74,54 @@ export function convertStructureToBytes(struct: ParsedStructure): Uint8Array {
         }
     }
     return new Uint8Array(bytes);
+}
+
+export function generateTable(section: SectionDefinition) {
+    const fields = section.fields.map((field) => {
+        const fields = [
+            {
+                Field: field.name,
+                "Byte Size": field.byteSize.toString(),
+                Type: getFieldType(field),
+                Description: field.description ?? "-",
+            }
+        ]
+
+        if ("bitMasks" in field) {
+            for (const bitmask of field.bitMasks) {
+                fields.push({
+                    Field: `- ${bitmask.name}`,
+                    "Byte Size": bitmask.length ? `${bitmask.length} bits` : "1 bit",
+                    Type: bitmask.parser ? getFieldType({ byteSize: 0, parser: bitmask.parser, name: "" }) : "-",
+                    Description: "",
+                });
+            }
+        }
+        return fields;
+    }).flat(1);
+    return tablemark(fields); 
+}
+
+function getFieldType(field: FieldDefinition): string {
+    if ("parser" in field) {
+        if (field.parser?.type == "uint") {
+            return `uint${field.byteSize * 8}`;
+        }
+        else if (field.parser?.type == "int") {
+            return `int${field.byteSize * 8}`;
+        }
+        else if (field.parser?.type == "float") {
+            return `float${field.byteSize * 8}`;
+        }
+        else if (field.parser?.type == "enum") {
+            return `enum (${Object.keys(field.parser.mapping).join(", ")})`;
+        }
+        else {
+            return field.parser?.type ?? "-";
+        }
+    }
+    else if ("bitMasks" in field) {
+        return `bitmask`;
+    }
+    return "-";
 }

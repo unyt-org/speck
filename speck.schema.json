@@ -29,18 +29,6 @@
                 "big"
             ]
         },
-        "Category": {
-            "type": "string",
-            "enum": [
-                "red",
-                "green",
-                "blue",
-                "yellow",
-                "purple",
-                "gray",
-                "dark_blue"
-            ]
-        },
         "ParsedValue": {
             "oneOf": [
                 {
@@ -265,7 +253,7 @@
                     "type": "string"
                 },
                 "category": {
-                    "$ref": "#/$defs/Category"
+                    "type": "string"
                 },
                 "byteSize": {
                     "type": "number"
@@ -286,7 +274,6 @@
             },
             "required": [
                 "name",
-                "category",
                 "byteSize"
             ]
         },

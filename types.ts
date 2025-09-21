@@ -1,16 +1,4 @@
-// block-types.ts
-export const Category = {
-    red: "#f9015a",
-    green: "#29b570",
-    blue: "#1a87ad",
-    yellow: "#dfa72e",
-    purple: "#893fd0",
-    gray: "#6B7280",
-    dark_blue: "#2e37df",
-};
-
 export type ParsedValue = string | number | boolean;
-export type Category = keyof typeof Category;
 
 export type AndCondition = {
     and: FieldCondition[];
@@ -69,7 +57,7 @@ export type BaseFieldDefinition = {
     name: string;
     description?: string;
     group?: string;
-    category: Category;
+    category?: string;
     byteSize: number;
     repeat?: string | number; // name of the field that indicates how many times to repeat or a fixed number
     if?: FieldCondition; // condition to include this field

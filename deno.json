@@ -4,13 +4,16 @@
     "license": "MIT",
     "exports": "./mod.ts",
     "tasks": {
-        "build-npm": "deno run -A scripts/build-npm.ts"
+        "build-npm": "deno run -A scripts/build-npm.ts",
+        "generate-example-struct": "deno run -A scripts/generate-example-struct.ts",
+        "generate-markdown": "deno run -A scripts/generate-markdown.ts"
     },
     "fmt": {
         "indentWidth": 4
     },
     "imports": {
-        "@deno/dnt": "jsr:@deno/dnt@^0.42.1"
+        "@deno/dnt": "jsr:@deno/dnt@^0.42.1",
+        "tablemark": "npm:tablemark@^4.1.0"
     },
     "publish": {
         "exclude": [
