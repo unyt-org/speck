@@ -430,7 +430,7 @@ export function findFieldById(
     fields: ParsedField[],
 ): ParsedField | null {
     for (const field of fields) {
-        if (field.id === id || field.id === name) return field;
+        if (field.id === id) return field;
         if ("subFields" in field) {
             for (const subFields of field.subFields) {
                 const subField = findFieldById(id, subFields);
