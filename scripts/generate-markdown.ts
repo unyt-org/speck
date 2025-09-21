@@ -8,13 +8,13 @@ await updateMarkdownFiles(dirPath);
 
 function updateMarkdownFile(filePath: URL) {
 	const content = Deno.readTextFileSync(filePath);
-	// replace <speck-table/> or <speck-table>...<speck-table-end/> with generated table
-	const regex = /<speck-table?\s+([^>]+?)\/?>([\S\s]*<speck-table-end.*\/?>)?/g;
-	const newContent = content.replace(regex, (match, attrsString) => {
-		const attrs = extractAttrs(attrsString);
+	// replace <speck-table/> or <speck-table>...</speck-table> with generated table
+	const regex = /<speck-table?\s+([^>]+?)\/>|<speck-table?\s+([^>]+?)>[\S\s]*?<\/\s*speck-table>/g;	
+	const newContent = content.replace(regex, (match, attrsString1, attrsString2) => {
+		const attrs = extractAttrs(attrsString1 || attrsString2);
 		const table = generateTableFromAttrs(attrs.file, attrs.section, filePath)
 		if (table) {
-			return `<speck-table file="${attrs.file}" section="${attrs.section}"/>\n\n${table}\n<speck-table-end/>`;
+			return `<speck-table file="${attrs.file}" section="${attrs.section}">\n\n${table}\n</speck-table>`;
 		} else {
 			return match; // no change
 		} 
