@@ -159,7 +159,7 @@ export function generateFieldDescriptions(
     let text = "";
     for (const field of iterable) {
         if (!fieldHasDescription(field)) continue;
-        text += `<a name="${
+        text += `<a id="${
             generateFieldSlug(sectionDefinition.name, field)
         }"></a>\n${"#".repeat(level + 1)} ${field.name}\n${
             field.description ?? ""
