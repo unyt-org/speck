@@ -104,7 +104,7 @@ export function generateTable(
     const fields: Record<string, unknown>[] = iterable.map((field) => {
         const fields = [
             {
-                Field: generateFieldName(definition.name, field),
+                Field: generateFieldName(sectionDefinition.name, field),
                 "Size": generateSize(sectionDefinition, field),
                 Type: getFieldType(field),
                 [conditionKey]: generateCondition(
@@ -159,9 +159,11 @@ export function generateFieldDescriptions(
     let text = "";
     for (const field of iterable) {
         if (!fieldHasDescription(field)) continue;
-        text += `<a name="${generateFieldSlug(definition.name, field)}"></a>\n${
-            "#".repeat(level + 1)
-        } ${field.name}\n${field.description ?? ""}\n`;
+        text += `<a name="${
+            generateFieldSlug(sectionDefinition.name, field)
+        }"></a>\n${"#".repeat(level + 1)} ${field.name}\n${
+            field.description ?? ""
+        }\n`;
         if ("bitMasks" in field || "subFields" in field) {
             text += generateTable(field, sectionDefinition, level + 1);
         }
@@ -270,8 +272,10 @@ function stringifyFieldCondition(
 function generateLinkedField(sectionDefinition: SectionDefinition, id: string) {
     const referredField = findDefinitionById(id, sectionDefinition.fields);
     if (!referredField) throw new Error(`Field #${id} not found`);
-    if (!fieldHasDescription(referredField)) return referredField.name;
-    return `[${referredField.name}](#${
+    if (!fieldHasDescription(referredField)) {
+        return wrapCodeBlock(referredField.name);
+    }
+    return `[${wrapCodeBlock(referredField.name)}](#${
         generateFieldSlugFromId(sectionDefinition.name, id)
     })`;
 }
@@ -284,9 +288,8 @@ function generateFieldName(
     sectionName: string,
     field: FieldDefinition | BitMask,
 ): string {
-    return `<a name="${
-        generateFieldSlug(sectionName, field)
-    }">${field.name}</a>`;
+    if (!fieldHasDescription(field)) return field.name;
+    return `[${field.name}](#${generateFieldSlug(sectionName, field)})`;
 }
 
 function getFieldType(field: FieldDefinition | BitMask): string {
