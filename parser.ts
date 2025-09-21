@@ -2,6 +2,7 @@ import type {
     BitMask,
     Endianness,
     FieldCondition,
+    FieldDefinition,
     ParsedField,
     ParsedSection,
     ParsedStructure,
@@ -106,10 +107,11 @@ function parseSection(
     for (const fieldDef of sectionDef.fields) {
         const parsedField = parseField(
             sectionDef,
-            [fieldDef.name],
+            fieldDef,
             reader,
             parsedSection,
             endianness,
+            [sectionDef.name, fieldDef.name]
         );
         if (parsedField) {
             parsedSection.fields.push(...parsedField);
@@ -121,17 +123,12 @@ function parseSection(
 
 export function parseField(
     sectionDef: SectionDefinition,
-    fieldPath: string[],
+    fieldDef: FieldDefinition,
     reader: Uint8ArrayReader,
     parsedSection: ParsedSection,
     endianness: Endianness,
+    path: string[] = []
 ): ParsedField[] {
-    const fieldDef = sectionDef.fields.find((f) => f.name === fieldPath.at(-1));
-    if (!fieldDef) {
-        throw new Error(
-            `Field ${fieldPath} not found in section ${sectionDef.name}`,
-        );
-    }
 
     // check condition and skip if not met
     if (fieldDef.if && !checkFieldCondition(parsedSection, fieldDef.if)) {
@@ -152,7 +149,7 @@ export function parseField(
             if (!repeatField) {
                 throw new Error(
                     `Repeat field ${fieldDef.repeat} not found for field ${
-                        fieldPath.join(".")
+                        path.join(".")
                     }`,
                 );
             }
@@ -173,17 +170,15 @@ export function parseField(
     for (let i = 0; i < repeatCount; i++) {
         // return sub fields
         if ("subFields" in fieldDef && fieldDef.subFields) {
-            const bytes = reader.peekBytes(fieldDef.byteSize, [
-                sectionDef.name,
-                ...fieldPath,
-            ]);
+            const bytes = reader.peekBytes(fieldDef.byteSize, path);
             const subFields = fieldDef.subFields.map((subField) =>
                 parseField(
                     sectionDef,
-                    [...fieldPath, subField.name],
+                    subField,
                     reader,
                     parsedSection,
                     endianness,
+                    [...path, subField.name]
                 )
             );
             parsedFields.push({
@@ -198,10 +193,7 @@ export function parseField(
             continue;
         }
 
-        const bytes = reader.readBytes(fieldDef.byteSize, [
-            sectionDef.name,
-            ...fieldPath,
-        ]);
+        const bytes = reader.readBytes(fieldDef.byteSize, path);
 
         // bit masks
         if ("bitMasks" in fieldDef) {
