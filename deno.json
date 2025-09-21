@@ -2,7 +2,10 @@
     "name": "@unyt/speck",
     "version": "0.0.4",
     "license": "MIT",
-    "exports": "./mod.ts",
+    "exports": {
+        ".": "./mod.ts",
+        "./markdown-generator.ts": "./markdown-generator.ts"
+    },
     "tasks": {
         "build-npm": "deno run -A scripts/build-npm.ts",
         "generate-example-struct": "deno run -A scripts/generate-example-struct.ts",
