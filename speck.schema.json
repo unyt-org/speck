@@ -1,559 +1,237 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://example.com/structure-definition.schema.json",
-    "title": "StructureDefinition",
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string"
-        },
-        "endian": {
-            "$ref": "#/$defs/Endianness"
-        },
-        "sections": {
-            "type": "array",
-            "items": {
-                "$ref": "#/$defs/SectionDefinition"
-            }
-        }
-    },
-    "required": [
-        "name",
-        "sections"
-    ],
-    "$defs": {
-        "Endianness": {
-            "type": "string",
-            "enum": [
-                "little",
-                "big"
-            ]
-        },
-        "ParsedValue": {
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "number"
-                },
-                {
-                    "type": "boolean"
-                }
-            ]
-        },
-        "AndCondition": {
-            "type": "object",
-            "properties": {
-                "and": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/$defs/FieldCondition"
-                    }
-                }
-            },
-            "required": [
-                "and"
-            ]
-        },
-        "OrCondition": {
-            "type": "object",
-            "properties": {
-                "or": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/$defs/FieldCondition"
-                    }
-                }
-            },
-            "required": [
-                "or"
-            ]
-        },
-        "NotCondition": {
-            "type": "object",
-            "properties": {
-                "not": {
-                    "$ref": "#/$defs/FieldCondition"
-                }
-            },
-            "required": [
-                "not"
-            ]
-        },
-        "EqualsCondition": {
-            "type": "object",
-            "properties": {
-                "equals": {
-                    "type": "array",
-                    "prefixItems": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "$ref": "#/$defs/ParsedValue"
-                        }
-                    ],
-                    "minItems": 2,
-                    "maxItems": 2
-                }
-            },
-            "required": [
-                "equals"
-            ]
-        },
-        "IncludesCondition": {
-            "type": "object",
-            "properties": {
-                "includes": {
-                    "type": "array",
-                    "prefixItems": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/$defs/ParsedValue"
-                            }
-                        }
-                    ],
-                    "minItems": 2,
-                    "maxItems": 2
-                }
-            },
-            "required": [
-                "includes"
-            ]
-        },
-        "GreaterThanCondition": {
-            "type": "object",
-            "properties": {
-                "greaterThan": {
-                    "type": "array",
-                    "prefixItems": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "number"
-                        }
-                    ],
-                    "minItems": 2,
-                    "maxItems": 2
-                }
-            },
-            "required": [
-                "greaterThan"
-            ]
-        },
-        "LessThanCondition": {
-            "type": "object",
-            "properties": {
-                "lessThan": {
-                    "type": "array",
-                    "prefixItems": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "number"
-                        }
-                    ],
-                    "minItems": 2,
-                    "maxItems": 2
-                }
-            },
-            "required": [
-                "lessThan"
-            ]
-        },
-        "FieldCondition": {
-            "oneOf": [
-                {
-                    "$ref": "#/$defs/AndCondition"
-                },
-                {
-                    "$ref": "#/$defs/OrCondition"
-                },
-                {
-                    "$ref": "#/$defs/NotCondition"
-                },
-                {
-                    "$ref": "#/$defs/EqualsCondition"
-                },
-                {
-                    "$ref": "#/$defs/IncludesCondition"
-                },
-                {
-                    "$ref": "#/$defs/GreaterThanCondition"
-                },
-                {
-                    "$ref": "#/$defs/LessThanCondition"
-                }
-            ]
-        },
-        "EnumParser": {
-            "type": "object",
-            "additionalProperties": {
-                "$ref": "#/$defs/ParsedValue"
-            }
-        },
-        "ValueParser": {
-            "oneOf": [
-                {
-                    "type": "object",
-                    "properties": {
-                        "type": {
-                            "const": "enum"
-                        },
-                        "mapping": {
-                            "$ref": "#/$defs/EnumParser"
-                        }
-                    },
-                    "required": [
-                        "type",
-                        "mapping"
-                    ]
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "type": {
-                            "enum": [
-                                "boolean",
-                                "int",
-                                "uint",
-                                "float",
-                                "string",
-                                "endpoint",
-                                "pointer"
-                            ]
-                        }
-                    },
-                    "required": [
-                        "type"
-                    ]
-                }
-            ]
-        },
-        "BaseFieldDefinition": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "byteSize": {
-                    "type": "number"
-                },
-                "repeat": {
-                    "oneOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "number"
-                        }
-                    ]
-                },
-                "if": {
-                    "$ref": "#/$defs/FieldCondition"
-                }
-            },
-            "required": [
-                "name",
-                "byteSize"
-            ]
-        },
-        "NestedFieldDefinition": {
-            "allOf": [
-                {
-                    "$ref": "#/$defs/BaseFieldDefinition"
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "subFields": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/$defs/FieldDefinition"
-                            }
-                        }
-                    },
-                    "required": [
-                        "subFields"
-                    ]
-                }
-            ]
-        },
-        "FieldWithBitMaskDefinition": {
-            "allOf": [
-                {
-                    "$ref": "#/$defs/BaseFieldDefinition"
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "bitMasks": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/$defs/BitMask"
-                            }
-                        }
-                    },
-                    "required": [
-                        "bitMasks"
-                    ]
-                }
-            ]
-        },
-        "DirectFieldDefinition": {
-            "allOf": [
-                {
-                    "$ref": "#/$defs/BaseFieldDefinition"
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "parser": {
-                            "$ref": "#/$defs/ValueParser"
-                        }
-                    }
-                }
-            ]
-        },
-        "FieldDefinition": {
-            "oneOf": [
-                {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/BaseFieldDefinition"
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "subFields": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/$defs/FieldDefinition"
-                                    }
-                                }
-                            },
-                            "required": [
-                                "subFields"
-                            ],
-                            "not": {
-                                "anyOf": [
-                                    {
-                                        "required": [
-                                            "bitMasks"
-                                        ]
-                                    },
-                                    {
-                                        "required": [
-                                            "parser"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/BaseFieldDefinition"
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "bitMasks": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/$defs/BitMask"
-                                    }
-                                }
-                            },
-                            "required": [
-                                "bitMasks"
-                            ],
-                            "not": {
-                                "anyOf": [
-                                    {
-                                        "required": [
-                                            "subFields"
-                                        ]
-                                    },
-                                    {
-                                        "required": [
-                                            "parser"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/BaseFieldDefinition"
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "parser": {
-                                    "$ref": "#/$defs/ValueParser"
-                                }
-                            },
-                            "not": {
-                                "anyOf": [
-                                    {
-                                        "required": [
-                                            "subFields"
-                                        ]
-                                    },
-                                    {
-                                        "required": [
-                                            "bitMasks"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        "SectionDefinition": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/$defs/FieldDefinition"
-                    }
-                }
-            },
-            "required": [
-                "name",
-                "fields"
-            ]
-        },
-        "BitMask": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "length": {
-                    "type": "number"
-                },
-                "parser": {
-                    "$ref": "#/$defs/ValueParser"
-                }
-            },
-            "required": [
-                "name"
-            ]
-        },
-        "ParsedFieldWithSubFields": {
-            "type": "object",
-            "properties": {
-                "subFields": {
-                    "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/$defs/ParsedField"
-                        }
-                    }
-                }
-            },
-            "required": [
-                "subFields"
-            ]
-        },
-        "DirectParsedField": {
-            "type": "object",
-            "properties": {
-                "parsedValue": {
-                    "$ref": "#/$defs/ParsedValue"
-                }
-            }
-        },
-        "ParsedField": {
-            "allOf": [
-                {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string"
-                        },
-                        "bytes": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "maximum": 255
-                            }
-                        }
-                    },
-                    "required": [
-                        "name",
-                        "bytes"
-                    ]
-                },
-                {
-                    "oneOf": [
-                        {
-                            "$ref": "#/$defs/ParsedFieldWithSubFields"
-                        },
-                        {
-                            "$ref": "#/$defs/DirectParsedField"
-                        }
-                    ]
-                }
-            ]
-        },
-        "ParsedSection": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/$defs/ParsedField"
-                    }
-                }
-            },
-            "required": [
-                "name",
-                "fields"
-            ]
-        },
-        "ParsedStructure": {
-            "type": "array",
-            "items": {
-                "$ref": "#/$defs/ParsedSection"
-            }
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/structure-definition.schema.json",
+  "title": "StructureDefinition",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "endian": { "$ref": "#/$defs/Endianness" },
+    "sections": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/SectionDefinition" }
     }
+  },
+  "required": ["name", "sections"],
+  "$defs": {
+    "Endianness": {
+      "type": "string",
+      "enum": ["little", "big"]
+    },
+    "ParsedValue": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" }
+      ]
+    },
+    "AndCondition": {
+      "type": "object",
+      "properties": {
+        "and": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FieldCondition" }
+        }
+      },
+      "required": ["and"]
+    },
+    "OrCondition": {
+      "type": "object",
+      "properties": {
+        "or": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FieldCondition" }
+        }
+      },
+      "required": ["or"]
+    },
+    "NotCondition": {
+      "type": "object",
+      "properties": {
+        "not": { "$ref": "#/$defs/FieldCondition" }
+      },
+      "required": ["not"]
+    },
+    "EqualsCondition": {
+      "type": "object",
+      "properties": {
+        "equals": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "string" },
+            { "$ref": "#/$defs/ParsedValue" }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": ["equals"]
+    },
+    "IncludesCondition": {
+      "type": "object",
+      "properties": {
+        "includes": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/$defs/ParsedValue" }
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": ["includes"]
+    },
+    "GreaterThanCondition": {
+      "type": "object",
+      "properties": {
+        "greaterThan": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "string" },
+            { "type": "number" }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": ["greaterThan"]
+    },
+    "LessThanCondition": {
+      "type": "object",
+      "properties": {
+        "lessThan": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "string" },
+            { "type": "number" }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": ["lessThan"]
+    },
+    "FieldCondition": {
+      "oneOf": [
+        { "$ref": "#/$defs/AndCondition" },
+        { "$ref": "#/$defs/OrCondition" },
+        { "$ref": "#/$defs/NotCondition" },
+        { "$ref": "#/$defs/EqualsCondition" },
+        { "$ref": "#/$defs/IncludesCondition" },
+        { "$ref": "#/$defs/GreaterThanCondition" },
+        { "$ref": "#/$defs/LessThanCondition" }
+      ]
+    },
+    "EnumParser": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/ParsedValue" }
+    },
+    "ValueParser": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "enum" },
+            "mapping": { "$ref": "#/$defs/EnumParser" }
+          },
+          "required": ["type", "mapping"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "boolean",
+                "int",
+                "uint",
+                "float",
+                "string",
+                "endpoint",
+                "pointer"
+              ]
+            }
+          },
+          "required": ["type"]
+        }
+      ]
+    },
+    "BaseFieldDefinition": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "byteSize": { "type": "number" },
+        "repeat": {
+          "oneOf": [{ "type": "string" }, { "type": "number" }]
+        },
+        "if": { "$ref": "#/$defs/FieldCondition" },
+        "parser": { "$ref": "#/$defs/ValueParser" }
+      },
+      "required": ["name", "byteSize"]
+    },
+    "NestedFieldDefinition": {
+      "allOf": [
+        { "$ref": "#/$defs/BaseFieldDefinition" },
+        {
+          "type": "object",
+          "properties": {
+            "subFields": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/FieldDefinition" }
+            }
+          },
+          "not": { "required": ["bitMasks"] }
+        }
+      ]
+    },
+    "FieldWithBitMaskDefinition": {
+      "allOf": [
+        { "$ref": "#/$defs/BaseFieldDefinition" },
+        {
+          "type": "object",
+          "properties": {
+            "bitMasks": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/BitMask" }
+            }
+          },
+          "required": ["bitMasks"],
+          "not": { "required": ["subFields"] }
+        }
+      ]
+    },
+    "FieldDefinition": {
+      "oneOf": [
+        { "$ref": "#/$defs/NestedFieldDefinition" },
+        { "$ref": "#/$defs/FieldWithBitMaskDefinition" }
+      ]
+    },
+    "SectionDefinition": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FieldDefinition" }
+        }
+      },
+      "required": ["name", "fields"]
+    },
+    "BitMask": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "length": { "type": "number" },
+        "description": { "type": "string" },
+        "parser": { "$ref": "#/$defs/ValueParser" }
+      },
+      "required": ["name", "length"]
+    }
+  }
 }

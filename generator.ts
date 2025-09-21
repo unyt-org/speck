@@ -1,7 +1,8 @@
+import type { BitMask, EnumParser, FieldCondition, ParsedValue } from "./mod.ts";
 import { parseStructureWithReader, type Uint8ArrayReader } from "./parser.ts";
 import type { ParsedStructure, FieldDefinition,  StructureDefinition, SectionDefinition } from "./types.ts";
 import { tablemark } from "tablemark";
-    
+import GithubSlugger from 'npm:github-slugger'
 
 export type CustomBytes = {
     [key: string]: CustomBytes | Record<string, number[]>;
@@ -76,45 +77,167 @@ export function convertStructureToBytes(struct: ParsedStructure): Uint8Array {
     return new Uint8Array(bytes);
 }
 
-export function generateTable(section: SectionDefinition) {
-    const fields = section.fields.map((field) => {
+export function generateTable(definition: SectionDefinition|FieldDefinition, sectionDefinition: SectionDefinition = definition as SectionDefinition, level: number = 1): string {
+    const isBitMasksField = 'bitMasks' in definition;
+    const iterable: FieldDefinition[]|BitMask[] = 'fields' in definition ? 
+        definition.fields : 
+        (isBitMasksField ? definition.bitMasks : 
+            'subFields' in definition ? definition.subFields! : []);
+    const conditionKey = "Condition (for optional fields)";
+    const fields: Record<string,unknown>[] = iterable.map((field) => {
         const fields = [
             {
-                Field: field.name,
-                "Byte Size": field.byteSize.toString(),
+                Field: generateFieldName(definition.name, field),
+                "Size": generateSize(sectionDefinition, field),
                 Type: getFieldType(field),
-                Description: field.description ?? "-",
+                [conditionKey]: generateCondition(sectionDefinition, field as FieldDefinition)
             }
         ]
-
-        if ("bitMasks" in field) {
-            for (const bitmask of field.bitMasks) {
-                fields.push({
-                    Field: `- ${bitmask.name}`,
-                    "Byte Size": bitmask.length ? `${bitmask.length} bits` : "1 bit",
-                    Type: bitmask.parser ? getFieldType({ byteSize: 0, parser: bitmask.parser, name: "" }) : "-",
-                    Description: "",
-                });
-            }
-        }
         return fields;
     }).flat(1);
-    return tablemark(fields); 
+
+    // remove description if empty for all fields
+    if (fields.every((f) => f[conditionKey] === "-")) {
+        for (const f of fields) {
+            delete f[conditionKey];
+        }
+    }
+
+    const table = tablemark(
+        fields, 
+        {
+            maxWidth: 160,
+            headerCase: "preserve"
+        }
+    );
+    const descriptions = generateFieldDescriptions(definition, sectionDefinition, level);
+
+    return table + "\n\n" + descriptions;
 }
 
-function getFieldType(field: FieldDefinition): string {
+
+export function fieldHasDescription(field: FieldDefinition|BitMask): boolean {
+    if (field.description) return true;
+    if ('subFields' in field || 'bitMasks' in field) return true;
+    if (field.parser?.type == "enum") return true;
+    return false;
+}
+
+export function generateFieldDescriptions(definition: SectionDefinition|FieldDefinition, sectionDefinition: SectionDefinition = definition as SectionDefinition, level: number = 1) {
+    const isBitMasksField = 'bitMasks' in definition;
+    const iterable: FieldDefinition[]|BitMask[] = 'fields' in definition ? 
+        definition.fields : 
+        (isBitMasksField ? definition.bitMasks : []);
+
+    let text = "";
+    for (const field of iterable) {
+        if (!fieldHasDescription(field)) continue;
+        text += `<a name="${generateFieldSlug(definition.name, field)}"></a>\n${'#'.repeat(level+1)} ${field.name}\n${field.description??""}\n`
+        if ('bitMasks' in field || 'subFields' in field) {
+            text += generateTable(field, sectionDefinition, level + 1);
+        }
+        if ('parser' in field && field.parser?.type == "enum") {
+            text += `**Enum Mapping:**\n\n`;
+            text += generateEnumMappingTable(field.parser.mapping);
+            text += `\n\n`;
+        }
+    }
+    return text;
+}
+
+function generateEnumMappingTable(enumParser: EnumParser): string {
+    const rows = Object.entries(enumParser).map(([key, value]) => ({
+        'Integer Value': wrapCodeBlock(key),
+        'Mapped Value': stringifyParsedValue(value),
+    }));
+    return tablemark(rows, { headerCase: "preserve" });
+}
+
+function wrapCodeBlock(text: string): string {
+    return `\`${text}\``;
+}
+
+
+function generateFieldSlug(sectionName: string, field: FieldDefinition|BitMask): string {
+    return generateFieldSlugFromId(sectionName, field.id ?? field.name)
+}
+
+function generateFieldSlugFromId(sectionName: string, id: string): string {
+    return new GithubSlugger().slug(sectionName + "-" + id);
+}
+
+
+function generateSize(sectionDefinition: SectionDefinition, field: FieldDefinition|BitMask): string {
+    if (isBitmask(field)) return `${field.length} bit${field.length === 1 ? "" : "s"}`;
+    if (typeof field.repeat == "string") {
+        return `${field.byteSize} byte${field.byteSize === 1 ? "" : "s"} x ${generateLinkedField(sectionDefinition, field.repeat)}`
+    }
+    else if (typeof field.repeat == "number") {
+        return `${field.byteSize} byte${field.byteSize === 1 ? "" : "s"} x ${field.repeat}`
+    }
+    return `${field.byteSize} byte${field.byteSize === 1 ? "" : "s"}`;
+}
+
+function isBitmask(definition: FieldDefinition|BitMask): definition is BitMask {
+    return 'length' in definition;
+}
+
+function generateCondition(sectionDefinition: SectionDefinition, field: FieldDefinition): string {
+    if (field.if) {
+        return stringifyFieldCondition(sectionDefinition, field.if)
+    }
+    else {
+        return "-"
+    }
+}
+
+function stringifyFieldCondition(sectionDefinition: SectionDefinition, condition: FieldCondition): string {
+    const key = Object.keys(condition)[0] as keyof typeof condition;
+    const value = condition[key] as any[];
+    if (key == 'or' || key == 'and') {
+        return value
+            .map((v: FieldCondition) => stringifyFieldCondition(sectionDefinition, v))
+            .join(` ${key} `);
+    }
+    else if (key == 'not') {
+        return `not (${stringifyFieldCondition(sectionDefinition, value[0])})`
+    }
+    else if (key == 'includes') {
+        return `${generateLinkedField(sectionDefinition, value[0])} in (${value[1].map(stringifyParsedValue).join(",")})`;
+    }
+    else {
+        return `${generateLinkedField(sectionDefinition, value[0])} ${key} ` + stringifyParsedValue(value[1]);
+    }
+}
+
+function generateLinkedField(sectionDefinition: SectionDefinition, id: string) {
+    const referredField = findDefinitionById(id, sectionDefinition.fields);
+    if (!referredField) throw new Error(`Field #${id} not found`);
+    if (!fieldHasDescription(referredField)) return referredField.name;
+    return `[${referredField.name}](#${generateFieldSlugFromId(sectionDefinition.name, id)})`
+}
+
+function stringifyParsedValue(value: ParsedValue) {
+    return wrapCodeBlock(JSON.stringify(value));
+}
+
+function generateFieldName(sectionName: string, field: FieldDefinition|BitMask): string {
+    return `<a name="${generateFieldSlug(sectionName, field)}">${field.name}</a>`;
+}
+
+function getFieldType(field: FieldDefinition|BitMask): string {
     if ("parser" in field) {
         if (field.parser?.type == "uint") {
-            return `uint${field.byteSize * 8}`;
+            return 'byteSize' in field ? `uint${field.byteSize * 8}` : `uint`;
         }
         else if (field.parser?.type == "int") {
-            return `int${field.byteSize * 8}`;
+            return 'byteSize' in field ? `int${field.byteSize * 8}` : `int`;
         }
         else if (field.parser?.type == "float") {
-            return `float${field.byteSize * 8}`;
+            return 'byteSize' in field ? `float${field.byteSize * 8}` : `float`;
         }
         else if (field.parser?.type == "enum") {
-            return `enum (${Object.keys(field.parser.mapping).join(", ")})`;
+            return `enum`;
         }
         else {
             return field.parser?.type ?? "-";
@@ -124,4 +247,23 @@ function getFieldType(field: FieldDefinition): string {
         return `bitmask`;
     }
     return "-";
+}
+
+function findDefinitionById(
+    id: string,
+    fields: FieldDefinition[],
+): FieldDefinition | BitMask | null {
+    for (const field of fields) {
+        if (field.id === id) return field;
+        if ("subFields" in field && field.subFields) {
+            const subField = findDefinitionById(id, field.subFields);;
+            if (subField) return subField;
+        }
+        else if ('bitMasks' in field) {
+            for (const bitMask of field.bitMasks) {
+                if (bitMask.id == id) return bitMask;
+            }
+        }
+    }
+    return null;
 }

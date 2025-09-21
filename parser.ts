@@ -172,7 +172,7 @@ export function parseField(
 
     for (let i = 0; i < repeatCount; i++) {
         // return sub fields
-        if ("subFields" in fieldDef) {
+        if ("subFields" in fieldDef && fieldDef.subFields) {
             const bytes = reader.peekBytes(fieldDef.byteSize, [
                 sectionDef.name,
                 ...fieldPath,
@@ -190,6 +190,9 @@ export function parseField(
                 ...fieldDef.id && { id: fieldDef.id },
                 name: fieldDef.name,
                 bytes,
+                parsedValue: "parser" in fieldDef && fieldDef.parser
+                    ? parseFieldValue(bytes, fieldDef.parser, endianness)
+                    : undefined,
                 subFields: subFields.filter((f) => f !== null),
             });
             continue;
@@ -427,7 +430,7 @@ export function findFieldById(
     fields: ParsedField[],
 ): ParsedField | null {
     for (const field of fields) {
-        if (field.name === id) return field;
+        if (field.id === id || field.id === name) return field;
         if ("subFields" in field) {
             for (const subFields of field.subFields) {
                 const subField = findFieldById(id, subFields);

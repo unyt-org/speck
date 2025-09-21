@@ -11,8 +11,10 @@
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@ts-morph/bootstrap@0.27": "0.27.0",
     "jsr:@ts-morph/common@0.27": "0.27.0",
+    "npm:github-slugger@*": "2.0.0",
     "npm:tablemark@*": "4.1.0",
-    "npm:tablemark@^4.1.0": "4.1.0"
+    "npm:tablemark@^4.1.0": "4.1.0",
+    "npm:unique-slug@*": "5.0.0"
   },
   "jsr": {
     "@david/code-block-writer@13.0.3": {
@@ -77,6 +79,12 @@
     "get-east-asian-width@1.4.0": {
       "integrity": "sha512-QZjmEOC+IT1uk6Rx0sX22V6uHWVwbdbxf1faPqJ1QhLdGgsRGCZoyaQBm/piRdJy/D2um6hM1UP7ZEeQ4EkP+Q=="
     },
+    "github-slugger@2.0.0": {
+      "integrity": "sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw=="
+    },
+    "imurmurhash@0.1.4": {
+      "integrity": "sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA=="
+    },
     "string-width@7.2.0": {
       "integrity": "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ==",
       "dependencies": [
@@ -106,6 +114,12 @@
         "string-width@8.1.0",
         "wordwrapjs",
         "wrap-ansi"
+      ]
+    },
+    "unique-slug@5.0.0": {
+      "integrity": "sha512-9OdaqO5kwqR+1kVgHAhsp5vPNU0hnxRa26rBFNfNgM7M6pNtgzeBn3s/xbyCQL3dcjzOatcef6UUHpB/6MaETg==",
+      "dependencies": [
+        "imurmurhash"
       ]
     },
     "wordwrapjs@5.1.0": {

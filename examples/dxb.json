@@ -106,9 +106,9 @@
                     "category": "dark_blue",
                     "byteSize": 26,
                     "if": {
-                        "includes": [
+                        "equals": [
                             "receiver-type",
-                            ["Pointer", "ReceiversWithKeys"]
+                            "Pointer"
                         ]
                     },
                     "parser": { "type": "pointer" }
