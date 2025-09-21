@@ -13,6 +13,7 @@
     },
     "imports": {
         "@deno/dnt": "jsr:@deno/dnt@^0.42.1",
+        "github-slugger": "npm:github-slugger@^2.0.0",
         "tablemark": "npm:tablemark@^4.1.0"
     },
     "publish": {

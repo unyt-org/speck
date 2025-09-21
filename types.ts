@@ -71,7 +71,7 @@ export type FieldWithBitMaskDefinition = BaseFieldDefinition & {
 };
 export type FieldDefinition =
     | NestedFieldDefinition
-    | FieldWithBitMaskDefinition
+    | FieldWithBitMaskDefinition;
 
 export type SectionDefinition = {
     name: string;

@@ -12,6 +12,7 @@
     "jsr:@ts-morph/bootstrap@0.27": "0.27.0",
     "jsr:@ts-morph/common@0.27": "0.27.0",
     "npm:github-slugger@*": "2.0.0",
+    "npm:github-slugger@2": "2.0.0",
     "npm:tablemark@*": "4.1.0",
     "npm:tablemark@^4.1.0": "4.1.0",
     "npm:unique-slug@*": "5.0.0"
@@ -137,6 +138,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@deno/dnt@~0.42.1",
+      "npm:github-slugger@2",
       "npm:tablemark@^4.1.0"
     ]
   }
