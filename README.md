@@ -1,4 +1,5 @@
-# Speck - Declarative Specification Parser and Generator for Binary Data Formats
+# Speck
+**Declarative Specification Parser and Generator for Binary Data Formats**
 
 Speck is a TypeScript library for parsing and generating binary data formats
 based on declarative specifications. It is designed to be flexible and
