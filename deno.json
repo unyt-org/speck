@@ -16,7 +16,7 @@
         "generate-markdown": "deno run -A scripts/generate-markdown.ts"
     },
     "compilerOptions": {
-        "lib": ["esnext"]
+        "lib": ["esnext", "dom", "deno.ns"]
     },
     "fmt": {
         "indentWidth": 4
