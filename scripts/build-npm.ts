@@ -13,7 +13,7 @@ await build({
     ],
     outDir: "./npm",
     shims: {
-        deno: true
+        deno: true,
     },
     typeCheck: "both",
     scriptModule: false,

@@ -10,7 +10,6 @@ if (Deno.args.length !== 1) {
 
 const relativePath = Deno.args[0];
 const absolutePath = new URL(relativePath, `file://${Deno.cwd()}/`).pathname;
-console.log("absolutePath", absolutePath)
 if (!await exists(absolutePath)) {
     console.error(`Error: File not found: '${absolutePath}'`);
     Deno.exit(1);
