@@ -1,6 +1,6 @@
 /**
  * A module for parsing binary data structures
- * @module
+ * @module mod
  */
 
 export * from "./generator.ts";

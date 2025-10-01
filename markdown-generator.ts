@@ -1,4 +1,7 @@
-// Generates markdown tables from structure definitions and inserts them into markdown files.
+/**
+ * Generates markdown tables from structure definitions and inserts them into markdown files.
+ * @module markdown-generator
+ */
 
 import { walk } from "jsr:@std/fs@1/walk";
 import { generateTable } from "./generator.ts";
