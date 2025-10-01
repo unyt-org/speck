@@ -27,6 +27,8 @@
         "exclude": [
             ".github",
             ".vscode",
+            "test",
+            "./scripts/read-dxb.ts",
             "./scripts/build-npm.ts"
         ]
     }
