@@ -1,5 +1,28 @@
 // Parser: Parse a byte array according to a structure definition and return the parsed structure.
 
+const CUSTOM_PARSERS: Map<string, (bytes: Uint8Array) => ParsedValue> =
+    new Map();
+
+/**
+ * Register a custom parser function that can be used in structure definitions.
+ * @param name The name of the custom parser.
+ * @param parser The parser function.
+ */
+export function registerCustomParser<T extends ParsedValue>(
+    name: string,
+    parser: (bytes: Uint8Array) => T,
+) {
+    CUSTOM_PARSERS.set(name, parser);
+}
+
+/**
+ * Unregister a custom parser function.
+ * @param name The name of the custom parser to unregister.
+ */
+export function unregisterCustomParser(name: string) {
+    CUSTOM_PARSERS.delete(name);
+}
+
 import type {
     BitMaskDefinition,
     Endianness,
@@ -417,10 +440,10 @@ function parseFieldValue(
         const typePrefix = type === 0 ? "@" : type === 1 ? "@+" : "@@";
         // 18 bytes id
         const idBytes = bytes.slice(1, 19);
+
         // 2 bytes instance
         const instanceBytes = bytes.slice(19, 21);
-        const decoder = new TextDecoder("utf-8");
-        const id = decoder.decode(idBytes).replace(/\0.*$/g, "");
+
         const instance = new DataView(instanceBytes.buffer).getUint16(
             0,
             endianness === "little",
@@ -431,6 +454,15 @@ function parseFieldValue(
             : instance == MAX_UINT16
             ? "*"
             : instance.toString();
+
+        let id: string;
+        if (idBytes.every((b) => b === 0)) {
+            id = "local";
+        } else {
+            const decoder = new TextDecoder("utf-8");
+            id = decoder.decode(idBytes).replace(/\0.*$/g, "");
+        }
+
         return `${typePrefix}${id}${
             instance !== 0 ? `/${instanceString}` : ""
         }`;
@@ -441,6 +473,12 @@ function parseFieldValue(
         const bytesHex = [...bytes].map((b) => b.toString(16).padStart(2, "0"))
             .join("");
         return `$${bytesHex}`;
+    } else if (parser.type == "custom") {
+        const customParser = CUSTOM_PARSERS.get(parser.name);
+        if (!customParser) {
+            throw new Error(`Custom parser ${parser.name} not found`);
+        }
+        return customParser(bytes);
     }
 
     throw new Error(`Unknown parser type: ${parser.type}`);

@@ -42,6 +42,10 @@ export type ValueParser =
         mapping: EnumParser;
     }
     | {
+        type: "custom";
+        name: string;
+    }
+    | {
         type:
             | "boolean"
             | "int"

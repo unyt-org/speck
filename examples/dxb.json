@@ -332,13 +332,7 @@
         },
         {
             "name": "Body",
-            "fields": [
-                {
-                    "name": "Payload",
-                    "category": "green",
-                    "byteSize": 0
-                }
-            ]
+            "fields": []
         }
     ]
 }
