@@ -22,7 +22,8 @@
         "indentWidth": 4
     },
     "imports": {
-        "@deno/dnt": "jsr:@deno/dnt@^0.42.1",
+        "@deno/dnt": "jsr:@deno/dnt@^0.42.3",
+        "@std/assert": "jsr:@std/assert@^1.0.14",
         "github-slugger": "npm:github-slugger@^2.0.0",
         "tablemark": "npm:tablemark@^4.1.0"
     },

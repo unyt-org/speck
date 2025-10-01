@@ -13,19 +13,14 @@ await build({
     ],
     outDir: "./npm",
     shims: {
-        deno: true,
-        timers: true,
-        prompts: true,
-        undici: true,
-        crypto: true,
-        weakRef: true,
-        webSocket: true,
+        deno: true
     },
     typeCheck: "both",
     scriptModule: false,
-
+    compilerOptions: {
+        lib: ["ESNext", "DOM"],
+    },
     package: {
-        // package.json properties
         name: "@unyt/speck",
         version: VERSION,
         license: "MIT",
@@ -37,7 +32,6 @@ await build({
             url: "https://github.com/unyt-org/speck/issues",
         },
     },
-    // steps to run after building and before running the tests
     postBuild() {
         Deno.copyFileSync("README.md", "npm/README.md");
     },

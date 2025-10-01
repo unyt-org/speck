@@ -1,6 +1,6 @@
 import { parseStructure } from "../parser.ts";
 import type { StructureDefinition } from "../types.ts";
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 
 Deno.test("structure", () => {
     const struct: StructureDefinition = {
