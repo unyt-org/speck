@@ -1,5 +1,7 @@
+// Parser: Parse a byte array according to a structure definition and return the parsed structure.
+
 import type {
-    BitMask,
+    BitMaskDefinition,
     Endianness,
     FieldCondition,
     FieldDefinition,
@@ -12,11 +14,17 @@ import type {
     ValueParser,
 } from "./types.ts";
 
+/**
+ * Interface for reading bytes from a Uint8Array with support for peeking.
+ */
 export interface Uint8ArrayReader {
     readBytes(count: number, fieldPath: string[]): Uint8Array;
     peekBytes(count: number, fieldPath: string[]): Uint8Array;
 }
 
+/**
+ * Default implementation of the Uint8ArrayReader interface.
+ */
 export class DefaultUint8ArrayReader implements Uint8ArrayReader {
     private offset = 0;
     private data: Uint8Array;
@@ -25,6 +33,11 @@ export class DefaultUint8ArrayReader implements Uint8ArrayReader {
         this.data = data instanceof Uint8Array ? data : new Uint8Array(data);
     }
 
+    /**
+     * Read a specified number of bytes from the current offset and advance the offset.
+     * @param count Number of bytes to read
+     * @returns 
+     */
     readBytes(count: number): Uint8Array {
         if (this.offset + count > this.data.length) {
             throw new Error("Attempt to read beyond end of data");
@@ -34,6 +47,11 @@ export class DefaultUint8ArrayReader implements Uint8ArrayReader {
         return bytes;
     }
 
+    /**
+     * Peek at a specified number of bytes from the current offset without advancing the offset.
+     * @param count Number of bytes to peek
+     * @returns The peeked bytes as a copy
+     */
     peekBytes(count: number): Uint8Array {
         if (this.offset + count > this.data.length) {
             throw new Error("Attempt to read beyond end of data");
@@ -42,6 +60,9 @@ export class DefaultUint8ArrayReader implements Uint8ArrayReader {
     }
 }
 
+/**
+ * Helper class for reading bits from a byte array.
+ */
 export class BitReader {
     private bitOffset = 0;
     private data: Uint8Array;
@@ -50,6 +71,11 @@ export class BitReader {
         this.data = data instanceof Uint8Array ? data : new Uint8Array(data);
     }
 
+    /**
+     * Read a specified number of bits from the current bit offset and advance the offset.
+     * @param count Number of bits to read
+     * @returns The read bits as a Uint8Array
+     */
     readBits(count: number): Uint8Array {
         if (count < 0) throw new Error('Cannot read negative bits');
 
@@ -73,6 +99,9 @@ export class BitReader {
 /**
  * Parses a byte array according to the provided structure definition and
  * returns the parsed structure.
+ * @param definition The structure definition to use for parsing.
+ * @param bytes The byte array to parse.
+ * @returns The parsed structure.
  */
 export function parseStructure(
     definition: StructureDefinition,
@@ -82,6 +111,12 @@ export function parseStructure(
     return parseStructureWithReader(definition, reader);
 }
 
+/**
+ * Parse a structure from a byte array using a reader.
+ * @param definition The structure definition to use for parsing.
+ * @param reader The reader to use for reading bytes.
+ * @returns The parsed structure.
+ */
 export function parseStructureWithReader(
     definition: StructureDefinition,
     reader: Uint8ArrayReader,
@@ -91,6 +126,13 @@ export function parseStructureWithReader(
     );
 }
 
+/**
+ * Parse a section from a byte array using a reader.
+ * @param sectionDef The section definition to parse.
+ * @param reader The reader to use for reading bytes.
+ * @param endianness The endianness to use for reading multi-byte values.
+ * @returns The parsed section.
+ */
 function parseSection(
     sectionDef: SectionDefinition,
     reader: Uint8ArrayReader,
@@ -117,6 +159,16 @@ function parseSection(
     return parsedSection;
 }
 
+/**
+ * Parse a section from a byte array using a reader.
+ * @param sectionDef The section definition to parse.
+ * @param fieldDef The field definition to parse.
+ * @param reader The reader to use for reading bytes.
+ * @param parsedSection The parsed section to update.
+ * @param endianness The endianness to use for reading multi-byte values.
+ * @param path The path to the field being parsed.
+ * @returns The parsed field.
+ */
 function parseField(
     sectionDef: SectionDefinition,
     fieldDef: FieldDefinition,
@@ -215,6 +267,12 @@ function parseField(
     return parsedFields;
 }
 
+/**
+ * Check if a field condition is met in the parsed section.
+ * @param parsedSection The parsed section to check against.
+ * @param condition The condition to check.
+ * @returns True if the condition is met, false otherwise.
+ */
 function checkFieldCondition(
     parsedSection: ParsedSection,
     condition: FieldCondition,
@@ -265,15 +323,13 @@ function checkFieldCondition(
     }
 }
 
-function uint8ArrayToNumberLE(arr: Uint8Array): number {
-    if (arr.length > 6) throw new Error("Too many bytes for a safe JS number");
-    let num = 0;
-    for (let i = arr.length - 1; i >= 0; i--) {
-        num = (num << 8) | arr[i];
-    }
-    return num;
-}
-
+/**
+ * Parse a field value from a byte array using a parser.
+ * @param bytes The byte array to parse.
+ * @param parser The parser to use for parsing the value.
+ * @param endianness The endianness to use for reading multi-byte values.
+ * @returns The parsed value.
+ */
 function parseFieldValue(
     bytes: Uint8Array,
     parser: ValueParser,
@@ -387,9 +443,16 @@ function parseFieldValue(
     throw new Error(`Unknown parser type: ${parser.type}`);
 }
 
+/**
+ * Parse a byte array into individual bit fields.
+ * @param bytes The byte array to parse.
+ * @param bitMasks The bit masks to apply.
+ * @param endianness The endianness to use for reading multi-byte values.
+ * @returns An array of parsed fields.
+ */
 function parseBitMasks(
     bytes: Uint8Array,
-    bitMasks: BitMask[],
+    bitMasks: BitMaskDefinition[],
     endianness: Endianness,
 ): ParsedField[] {
     const bitReader = new BitReader(bytes);
@@ -410,6 +473,12 @@ function parseBitMasks(
     return results;
 }
 
+/**
+ * Find a field by its ID.
+ * @param id The ID of the field to find.
+ * @param fields The list of fields to search.
+ * @returns The found field, or null if not found.
+ */
 function findFieldById(
     id: string,
     fields: ParsedField[],
@@ -424,4 +493,18 @@ function findFieldById(
         }
     }
     return null;
+}
+
+/**
+ * Convert a byte array to a little-endian number.
+ * @param arr The byte array to convert (up to 6 bytes for safe JS number).
+ * @returns The converted number.
+ */
+function uint8ArrayToNumberLE(arr: Uint8Array): number {
+    if (arr.length > 6) throw new Error("Too many bytes for a safe JS number");
+    let num = 0;
+    for (let i = arr.length - 1; i >= 0; i--) {
+        num = (num << 8) | arr[i];
+    }
+    return num;
 }

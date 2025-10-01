@@ -1,14 +1,27 @@
+// Generates markdown tables from structure definitions and inserts them into markdown files.
+
 import { walk } from "jsr:@std/fs@1/walk";
 import { generateTable } from "./generator.ts";
 import type { SectionDefinition, StructureDefinition } from "./types.ts";
 
+/**
+ * Get the file name from a file path or URL.
+ * @param path The file path or URL.
+ * @returns The file name.
+ */
 function getFileNameFromPath(path: URL | string): string {
     const parts = path.toString().split("/");
     return parts.at(-1) || path.toString();
 }
 
-type Attrs = { file: string; section: string; level?: number };
+export type Attrs = { file: string; section: string; level?: number };
 
+/**
+ * Extract attributes from a speck-table tag.
+ * @param attrsString The string containing attributes.
+ * @param mdFilePath The file path of the markdown file.
+ * @returns The extracted attributes.
+ */
 function extractAttrs(
     attrsString: string,
     mdFilePath: URL,
@@ -40,6 +53,14 @@ function extractAttrs(
     return attrs as Attrs;
 }
 
+/**
+ * Generate a markdown table from the extracted attributes.
+ * @param file The file path of the structure definition.
+ * @param section The section name to generate the table for.
+ * @param level The heading level for the table.
+ * @param mdFilePath The file path of the markdown file.
+ * @returns The generated markdown table, or null if generation failed.
+ */
 function generateTableFromAttrs(
     file: string,
     section: string,
@@ -61,6 +82,10 @@ function generateTableFromAttrs(
     return generateTable(sectionDefinition, sectionDefinition, level);
 }
 
+/**
+ * Update a markdown file by replacing speck-table tags with generated tables.
+ * @param filePath The file path of the markdown file to update.
+ */
 export function updateMarkdownFile(filePath: URL) {
     const content = Deno.readTextFileSync(filePath);
     // replace <speck-table/> or <speck-table>...</speck-table> with generated table
@@ -91,6 +116,10 @@ export function updateMarkdownFile(filePath: URL) {
     }
 }
 
+/**
+ * Update all markdown files in a directory.
+ * @param dirPath The directory path to search for markdown files.
+ */
 export async function updateMarkdownFiles(dirPath: URL) {
     // walk dir and find all .md files
     for await (const entry of walk(dirPath, { exts: [".md"] })) {

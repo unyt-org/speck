@@ -51,12 +51,13 @@ export type ValueParser =
             | "endpoint"
             | "pointer";
     };
-
+export type Usage = "omit";
 export type BaseFieldDefinition = {
     id?: string; // optional id to reference this field in conditions or repeat
     name: string;
     description?: string;
     category?: string;
+    usage?: Usage;
     byteSize: number;
     repeat?: string | number; // name of the field that indicates how many times to repeat or a fixed number
     if?: FieldCondition; // condition to include this field
@@ -67,7 +68,7 @@ export type NestedFieldDefinition = BaseFieldDefinition & {
     subFields?: FieldDefinition[];
 };
 export type FieldWithBitMaskDefinition = BaseFieldDefinition & {
-    bitMasks: BitMask[];
+    bitMasks: BitMaskDefinition[];
 };
 export type FieldDefinition =
     | NestedFieldDefinition
@@ -76,16 +77,18 @@ export type FieldDefinition =
 export type SectionDefinition = {
     name: string;
     fields: FieldDefinition[];
+    usage?: Usage;
 };
 
 export type Endianness = "little" | "big";
 
-export type BitMask = {
+export type BitMaskDefinition = {
     id?: string;
     name: string;
-    length: number; // number of bits (default 1)
+    length: number;
     description?: string;
     parser?: ValueParser;
+    usage?: Usage;
 };
 
 export type ParsedFieldWithSubFields = {

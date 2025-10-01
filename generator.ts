@@ -1,5 +1,5 @@
 import type {
-    BitMask,
+    BitMaskDefinition,
     EnumParser,
     FieldCondition,
     ParsedValue,
@@ -93,7 +93,7 @@ export function generateTable(
     level: number = 1,
 ): string {
     const isBitMasksField = "bitMasks" in definition;
-    const iterable: FieldDefinition[] | BitMask[] = "fields" in definition
+    const iterable: FieldDefinition[] | BitMaskDefinition[] = "fields" in definition
         ? definition.fields
         : (isBitMasksField
             ? definition.bitMasks
@@ -139,7 +139,7 @@ export function generateTable(
     return table + "\n\n" + descriptions;
 }
 
-export function fieldHasDescription(field: FieldDefinition | BitMask): boolean {
+export function fieldHasDescription(field: FieldDefinition | BitMaskDefinition): boolean {
     if (field.description) return true;
     if ("subFields" in field || "bitMasks" in field) return true;
     if (field.parser?.type == "enum") return true;
@@ -152,7 +152,7 @@ export function generateFieldDescriptions(
     level: number = 1,
 ): string {
     const isBitMasksField = "bitMasks" in definition;
-    const iterable: FieldDefinition[] | BitMask[] = "fields" in definition
+    const iterable: FieldDefinition[] | BitMaskDefinition[] = "fields" in definition
         ? definition.fields
         : (isBitMasksField ? definition.bitMasks : []);
 
@@ -190,7 +190,7 @@ function wrapCodeBlock(text: string): string {
 
 function generateFieldSlug(
     sectionName: string,
-    field: FieldDefinition | BitMask,
+    field: FieldDefinition | BitMaskDefinition,
 ): string {
     return generateFieldSlugFromId(sectionName, field.id ?? field.name);
 }
@@ -201,7 +201,7 @@ function generateFieldSlugFromId(sectionName: string, id: string): string {
 
 function generateSize(
     sectionDefinition: SectionDefinition,
-    field: FieldDefinition | BitMask,
+    field: FieldDefinition | BitMaskDefinition,
 ): string {
     if (isBitmask(field)) {
         return `${field.length} bit${field.length === 1 ? "" : "s"}`;
@@ -219,8 +219,8 @@ function generateSize(
 }
 
 function isBitmask(
-    definition: FieldDefinition | BitMask,
-): definition is BitMask {
+    definition: FieldDefinition | BitMaskDefinition,
+): definition is BitMaskDefinition {
     return "length" in definition;
 }
 
@@ -286,13 +286,13 @@ function stringifyParsedValue(value: ParsedValue) {
 
 function generateFieldName(
     sectionName: string,
-    field: FieldDefinition | BitMask,
+    field: FieldDefinition | BitMaskDefinition,
 ): string {
     if (!fieldHasDescription(field)) return field.name;
     return `[${field.name}](#${generateFieldSlug(sectionName, field)})`;
 }
 
-function getFieldType(field: FieldDefinition | BitMask): string {
+function getFieldType(field: FieldDefinition | BitMaskDefinition): string {
     if ("parser" in field) {
         if (field.parser?.type == "uint") {
             return "byteSize" in field ? `uint${field.byteSize * 8}` : `uint`;
@@ -314,7 +314,7 @@ function getFieldType(field: FieldDefinition | BitMask): string {
 function findDefinitionById(
     id: string,
     fields: FieldDefinition[],
-): FieldDefinition | BitMask | null {
+): FieldDefinition | BitMaskDefinition | null {
     for (const field of fields) {
         if (field.id === id) return field;
         if ("subFields" in field && field.subFields) {
