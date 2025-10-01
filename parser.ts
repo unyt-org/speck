@@ -43,7 +43,6 @@ export class DefaultUint8ArrayReader implements Uint8ArrayReader {
 }
 
 export class BitReader {
-    private byteOffset = 0;
     private bitOffset = 0;
     private data: Uint8Array;
 
@@ -52,23 +51,40 @@ export class BitReader {
     }
 
     readBits(count: number): Uint8Array {
-        const result = new Uint8Array(Math.ceil(count / 8));
-        for (let i = 0; i < count; i++) {
-            if (this.byteOffset >= this.data.length) {
-                throw new Error("Attempt to read beyond end of data");
-            }
-            const byte = this.data[this.byteOffset];
-            const bit = (byte >> (7 - this.bitOffset)) & 1;
-            const resultByteIndex = Math.floor(i / 8);
-            const resultBitIndex = i % 8;
-            result[resultByteIndex] |= bit << (7 - resultBitIndex);
+        if (count <= 0) throw new Error("Bit count must be positive");
 
-            this.bitOffset++;
-            if (this.bitOffset === 8) {
-                this.bitOffset = 0;
-                this.byteOffset++;
+        const result = new Uint8Array(Math.ceil(count / 8));
+        let bitsWritten = 0;
+
+        while (bitsWritten < count) {
+            const byteIndex = Math.floor(this.bitOffset / 8);
+            const bitIndex = this.bitOffset % 8;
+
+            if (byteIndex >= this.data.length) {
+                throw new Error("Reached end of buffer");
             }
+
+            const bitsAvailable = 8 - bitIndex;
+            const bitsToRead = Math.min(count - bitsWritten, bitsAvailable);
+
+            const mask = (1 << bitsToRead) - 1;
+            const bits = (this.data[byteIndex] >> (bitsAvailable - bitsToRead)) & mask;
+            
+            const resultByteIndex = Math.floor(bitsWritten / 8);
+            const resultBitIndex = bitsWritten % 8;
+
+            result[resultByteIndex] |= bits << (8 - resultBitIndex - bitsToRead);
+
+            bitsWritten += bitsToRead;
+            this.bitOffset += bitsToRead;
         }
+
+        // Right-align all bits in the last byte
+        const remainingBits = count % 8;
+        if (remainingBits !== 0) {
+            result[result.length - 1] >>= 8 - remainingBits;
+        }
+
         return result;
     }
 }
@@ -357,6 +373,9 @@ export function parseFieldValue(
                 throw new Error("Unsupported byte length for mapping");
             }
         }
+        throw new Error(`Value 0x${[...bytes].map((b) =>
+            b.toString(16).padStart(2, "0")
+        ).join(" ")} not found in enum mapping ${JSON.stringify(parser.mapping)}`);
     } else if (parser.type == "endpoint") {
         if (bytes.length !== 21) {
             throw new Error("Invalid byte length for endpoint");
@@ -391,7 +410,7 @@ export function parseFieldValue(
         return `$${bytesHex}`;
     }
 
-    throw new Error("Unknown parser type");
+    throw new Error(`Unknown parser type: ${parser.type}`);
 }
 
 export function parseBitMasks(
