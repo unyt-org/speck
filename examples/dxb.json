@@ -81,7 +81,8 @@
                     "name": "Checksum",
                     "category": "yellow",
                     "byteSize": 4,
-                    "parser": { "type": "uint" }
+                    "parser": { "type": "uint" },
+                    "if": { "equals": ["has-checksum", true] }
                 },
                 {
                     "name": "Distance",
@@ -132,9 +133,9 @@
                     "byteSize": 21,
                     "repeat": "receiver-count",
                     "if": {
-                        "includes": [
+                        "equals": [
                             "receiver-type",
-                            ["Receivers", "ReceiversWithKeys"]
+                            "Receivers"
                         ]
                     },
                     "parser": { "type": "endpoint" }
@@ -145,7 +146,10 @@
                     "byteSize": 21,
                     "repeat": "receiver-count",
                     "if": {
-                        "includes": ["receiver-type", ["ReceiversWithKeys"]]
+                        "equals": [
+                            "receiver-type",
+                            "ReceiversWithKeys"
+                        ]
                     },
                     "parser": { "type": "endpoint" }
                 },
@@ -189,24 +193,102 @@
                 {
                     "name": "Flags & Timestamp",
                     "category": "red",
-                    "byteSize": 8
+                    "byteSize": 8,
+                    "bitMasks": [
+                        {
+                            "name": "Block Type",
+                            "length": 4,
+                            "parser": {
+                                "type": "enum",
+                                "mapping": {
+                                    "0": "Request",
+                                    "1": "Response",
+                                    "2": "Hello",
+                                    "3": "Trace",
+                                    "4": "TraceBack"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Has Side Effects",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Has Only Data",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Is End of Section",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Is End of Context",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Has Lifetime",
+                            "id": "has-lifetime",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Has Represented By",
+                            "id": "has-represented-by",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Has IV",
+                            "id": "has-iv",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Is Compressed",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Is Signature in Last Subblock",
+                            "length": 1,
+                            "parser": { "type": "boolean" }
+                        },
+                        {
+                            "name": "Reserved",
+                            "length": 8,
+                            "parser": { "type": "uint" },
+                            "usage": "omit"
+                        },
+                        {
+                            "name": "Creation Timestamp",
+                            "length": 43,
+                            "parser": { "type": "uint" }
+                        }
+                    ]
                 },
                 {
                     "name": "Lifetime",
                     "category": "red",
                     "byteSize": 4,
-                    "parser": { "type": "uint" }
+                    "parser": { "type": "uint" },
+                    "if": { "equals": ["has-lifetime", true] }
                 },
                 {
                     "name": "Repr",
                     "category": "blue",
                     "byteSize": 21,
-                    "parser": { "type": "endpoint" }
+                    "parser": { "type": "endpoint" },
+                    "if": { "equals": ["has-represented-by", true] }
                 },
                 {
                     "name": "IV",
                     "category": "yellow",
-                    "byteSize": 16
+                    "byteSize": 16,
+                    "if": { "equals": ["has-iv", true] }
                 }
             ]
         },
@@ -220,7 +302,16 @@
                     "bitMasks": [
                         {
                             "name": "User Agent",
-                            "length": 4
+                            "length": 4,
+                            "parser": {
+                                "type": "enum",
+                                "mapping": {
+                                    "0": "Unknown",
+                                    "1": "Human",
+                                    "2": "Bot",
+                                    "3": "Service"
+                                }
+                            }
                         },
                         {
                             "id": "has-on-behalf-of",
