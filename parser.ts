@@ -36,7 +36,7 @@ export class DefaultUint8ArrayReader implements Uint8ArrayReader {
     /**
      * Read a specified number of bytes from the current offset and advance the offset.
      * @param count Number of bytes to read
-     * @returns 
+     * @returns
      */
     readBytes(count: number): Uint8Array {
         if (this.offset + count > this.data.length) {
@@ -77,7 +77,7 @@ export class BitReader {
      * @returns The read bits as a Uint8Array
      */
     readBits(count: number): Uint8Array {
-        if (count < 0) throw new Error('Cannot read negative bits');
+        if (count < 0) throw new Error("Cannot read negative bits");
 
         const bytesNeeded = Math.ceil(count / 8);
         const result = new Uint8Array(bytesNeeded);
@@ -150,7 +150,7 @@ function parseSection(
             reader,
             parsedSection,
             endianness,
-            [sectionDef.name, fieldDef.name]
+            [sectionDef.name, fieldDef.name],
         );
         if (parsedField) {
             parsedSection.fields.push(...parsedField);
@@ -175,7 +175,7 @@ function parseField(
     reader: Uint8ArrayReader,
     parsedSection: ParsedSection,
     endianness: Endianness,
-    path: string[] = []
+    path: string[] = [],
 ): ParsedField[] {
     // check condition and skip if not met
     if (fieldDef.if && !checkFieldCondition(parsedSection, fieldDef.if)) {
@@ -225,7 +225,7 @@ function parseField(
                     reader,
                     parsedSection,
                     endianness,
-                    [...path, subField.name]
+                    [...path, subField.name],
                 )
             );
             parsedFields.push({
@@ -306,7 +306,8 @@ function checkFieldCondition(
             parsedSection.fields,
         );
         if (!field) return false;
-        return "parsedValue" in field && field.parsedValue != null && Array.isArray(condition.includes[1]) &&
+        return "parsedValue" in field && field.parsedValue != null &&
+            Array.isArray(condition.includes[1]) &&
             condition.includes[1].includes(field.parsedValue);
     } else if ("not" in condition) {
         return !checkFieldCondition(parsedSection, condition.not);
@@ -403,9 +404,11 @@ function parseFieldValue(
                 throw new Error("Unsupported byte length for mapping");
             }
         }
-        throw new Error(`Value 0x${[...bytes].map((b) =>
-            b.toString(16).padStart(2, "0")
-        ).join(" ")} not found in enum mapping ${JSON.stringify(parser.mapping)}`);
+        throw new Error(
+            `Value 0x${
+                [...bytes].map((b) => b.toString(16).padStart(2, "0")).join(" ")
+            } not found in enum mapping ${JSON.stringify(parser.mapping)}`,
+        );
     } else if (parser.type == "endpoint") {
         if (bytes.length !== 21) {
             throw new Error("Invalid byte length for endpoint");

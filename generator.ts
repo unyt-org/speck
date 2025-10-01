@@ -93,13 +93,14 @@ export function generateTable(
     level: number = 1,
 ): string {
     const isBitMasksField = "bitMasks" in definition;
-    const iterable: FieldDefinition[] | BitMaskDefinition[] = "fields" in definition
-        ? definition.fields
-        : (isBitMasksField
-            ? definition.bitMasks
-            : "subFields" in definition
-            ? definition.subFields!
-            : []);
+    const iterable: FieldDefinition[] | BitMaskDefinition[] =
+        "fields" in definition
+            ? definition.fields
+            : (isBitMasksField
+                ? definition.bitMasks
+                : "subFields" in definition
+                ? definition.subFields!
+                : []);
     const conditionKey = "Condition (for optional fields)";
     const fields: Record<string, unknown>[] = iterable.map((field) => {
         const fields = [
@@ -139,7 +140,9 @@ export function generateTable(
     return table + "\n\n" + descriptions;
 }
 
-export function fieldHasDescription(field: FieldDefinition | BitMaskDefinition): boolean {
+export function fieldHasDescription(
+    field: FieldDefinition | BitMaskDefinition,
+): boolean {
     if (field.description) return true;
     if ("subFields" in field || "bitMasks" in field) return true;
     if (field.parser?.type == "enum") return true;
@@ -152,9 +155,10 @@ export function generateFieldDescriptions(
     level: number = 1,
 ): string {
     const isBitMasksField = "bitMasks" in definition;
-    const iterable: FieldDefinition[] | BitMaskDefinition[] = "fields" in definition
-        ? definition.fields
-        : (isBitMasksField ? definition.bitMasks : []);
+    const iterable: FieldDefinition[] | BitMaskDefinition[] =
+        "fields" in definition
+            ? definition.fields
+            : (isBitMasksField ? definition.bitMasks : []);
 
     let text = "";
     for (const field of iterable) {
