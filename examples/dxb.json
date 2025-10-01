@@ -191,7 +191,7 @@
                     "parser": { "type": "uint" }
                 },
                 {
-                    "name": "Flags & Timestamp",
+                    "name": "Flags and Timestamp",
                     "category": "red",
                     "byteSize": 8,
                     "bitMasks": [
@@ -278,7 +278,7 @@
                     "if": { "equals": ["has-lifetime", true] }
                 },
                 {
-                    "name": "Repr",
+                    "name": "Represented By",
                     "category": "blue",
                     "byteSize": 21,
                     "parser": { "type": "endpoint" },
