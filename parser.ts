@@ -50,62 +50,6 @@ export class BitReader {
         this.data = data instanceof Uint8Array ? data : new Uint8Array(data);
     }
 
-    // readBits(count: number): Uint8Array {
-    //     if (count <= 0) throw new Error("Bit count must be positive");
-
-    //     const result = new Uint8Array(Math.ceil(count / 8));
-    //     let bitsWritten = 0;
-
-    //     while (bitsWritten < count) {
-    //         const byteIndex = Math.floor(this.bitOffset / 8);
-    //         const bitIndex = this.bitOffset % 8;
-
-    //         if (byteIndex >= this.data.length) {
-    //             throw new Error("Reached end of buffer");
-    //         }
-
-    //         const bitsAvailable = 8 - bitIndex;
-    //         const bitsToRead = Math.min(count - bitsWritten, bitsAvailable);
-
-    //         const mask = (1 << bitsToRead) - 1;
-    //         const bits = (this.data[byteIndex] >> (bitsAvailable - bitsToRead)) & mask;
-            
-    //         const resultByteIndex = Math.floor(bitsWritten / 8);
-    //         const resultBitIndex = bitsWritten % 8;
-
-    //         result[resultByteIndex] |= bits << (8 - resultBitIndex - bitsToRead);
-
-    //         bitsWritten += bitsToRead;
-    //         this.bitOffset += bitsToRead;
-    //     }
-
-    //     // Right-align all bits in the last byte
-    //     const remainingBits = count % 8;
-    //     if (remainingBits !== 0) {
-    //         result[result.length - 1] >>= 8 - remainingBits;
-    //     }
-
-    //     return result;
-    // }
-    // readBits(count: number): number {
-    //     if (count < 0 || count > 32) {
-    //         throw new Error('Can only read between 0 and 32 bits at a time');
-    //     }
-
-    //     let result = 0;
-
-    //     for (let i = 0; i < count; i++) {
-    //         const byteIndex = Math.floor(this.bitOffset / 8);
-    //         const bitIndex = 7 - (this.bitOffset % 8); // read MSB first
-
-    //         const bit = (this.data[byteIndex] >> bitIndex) & 1;
-    //         result = (result << 1) | bit;
-
-    //         this.bitOffset++;
-    //     }
-
-    //     return result;
-    // }
     readBits(count: number): Uint8Array {
         if (count < 0) throw new Error('Cannot read negative bits');
 
@@ -122,7 +66,6 @@ export class BitReader {
             result[resByteIndex] |= bit << resBitIndex;
             this.bitOffset++;
         }
-
         return result;
     }
 }
@@ -174,7 +117,7 @@ function parseSection(
     return parsedSection;
 }
 
-export function parseField(
+function parseField(
     sectionDef: SectionDefinition,
     fieldDef: FieldDefinition,
     reader: Uint8ArrayReader,
@@ -272,7 +215,7 @@ export function parseField(
     return parsedFields;
 }
 
-export function checkFieldCondition(
+function checkFieldCondition(
     parsedSection: ParsedSection,
     condition: FieldCondition,
 ): boolean {
@@ -331,7 +274,7 @@ function uint8ArrayToNumberLE(arr: Uint8Array): number {
     return num;
 }
 
-export function parseFieldValue(
+function parseFieldValue(
     bytes: Uint8Array,
     parser: ValueParser,
     endianness: Endianness,
@@ -443,15 +386,8 @@ export function parseFieldValue(
 
     throw new Error(`Unknown parser type: ${parser.type}`);
 }
-function numberToUint8ArrayLE(value: number, length: number): Uint8Array {
-    const arr = new Uint8Array(length);
-    for (let i = 0; i < length; i++) {
-        arr[i] = value & 0xff;
-        value = value >> 8;
-    }
-    return arr;
-}
-export function parseBitMasks(
+
+function parseBitMasks(
     bytes: Uint8Array,
     bitMasks: BitMask[],
     endianness: Endianness,
@@ -474,7 +410,7 @@ export function parseBitMasks(
     return results;
 }
 
-export function findFieldById(
+function findFieldById(
     id: string,
     fields: ParsedField[],
 ): ParsedField | null {
