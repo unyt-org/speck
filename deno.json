@@ -15,6 +15,9 @@
         "generate-example-struct": "deno run -A scripts/generate-example-struct.ts",
         "generate-markdown": "deno run -A scripts/generate-markdown.ts"
     },
+    "compilerOptions": {
+        "lib": ["esnext"]
+    },
     "fmt": {
         "indentWidth": 4
     },
