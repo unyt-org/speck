@@ -50,39 +50,77 @@ export class BitReader {
         this.data = data instanceof Uint8Array ? data : new Uint8Array(data);
     }
 
+    // readBits(count: number): Uint8Array {
+    //     if (count <= 0) throw new Error("Bit count must be positive");
+
+    //     const result = new Uint8Array(Math.ceil(count / 8));
+    //     let bitsWritten = 0;
+
+    //     while (bitsWritten < count) {
+    //         const byteIndex = Math.floor(this.bitOffset / 8);
+    //         const bitIndex = this.bitOffset % 8;
+
+    //         if (byteIndex >= this.data.length) {
+    //             throw new Error("Reached end of buffer");
+    //         }
+
+    //         const bitsAvailable = 8 - bitIndex;
+    //         const bitsToRead = Math.min(count - bitsWritten, bitsAvailable);
+
+    //         const mask = (1 << bitsToRead) - 1;
+    //         const bits = (this.data[byteIndex] >> (bitsAvailable - bitsToRead)) & mask;
+            
+    //         const resultByteIndex = Math.floor(bitsWritten / 8);
+    //         const resultBitIndex = bitsWritten % 8;
+
+    //         result[resultByteIndex] |= bits << (8 - resultBitIndex - bitsToRead);
+
+    //         bitsWritten += bitsToRead;
+    //         this.bitOffset += bitsToRead;
+    //     }
+
+    //     // Right-align all bits in the last byte
+    //     const remainingBits = count % 8;
+    //     if (remainingBits !== 0) {
+    //         result[result.length - 1] >>= 8 - remainingBits;
+    //     }
+
+    //     return result;
+    // }
+    // readBits(count: number): number {
+    //     if (count < 0 || count > 32) {
+    //         throw new Error('Can only read between 0 and 32 bits at a time');
+    //     }
+
+    //     let result = 0;
+
+    //     for (let i = 0; i < count; i++) {
+    //         const byteIndex = Math.floor(this.bitOffset / 8);
+    //         const bitIndex = 7 - (this.bitOffset % 8); // read MSB first
+
+    //         const bit = (this.data[byteIndex] >> bitIndex) & 1;
+    //         result = (result << 1) | bit;
+
+    //         this.bitOffset++;
+    //     }
+
+    //     return result;
+    // }
     readBits(count: number): Uint8Array {
-        if (count <= 0) throw new Error("Bit count must be positive");
+        if (count < 0) throw new Error('Cannot read negative bits');
 
-        const result = new Uint8Array(Math.ceil(count / 8));
-        let bitsWritten = 0;
+        const bytesNeeded = Math.ceil(count / 8);
+        const result = new Uint8Array(bytesNeeded);
 
-        while (bitsWritten < count) {
+        for (let i = 0; i < count; i++) {
             const byteIndex = Math.floor(this.bitOffset / 8);
             const bitIndex = this.bitOffset % 8;
 
-            if (byteIndex >= this.data.length) {
-                throw new Error("Reached end of buffer");
-            }
-
-            const bitsAvailable = 8 - bitIndex;
-            const bitsToRead = Math.min(count - bitsWritten, bitsAvailable);
-
-            const mask = (1 << bitsToRead) - 1;
-            const bits = (this.data[byteIndex] >> (bitsAvailable - bitsToRead)) & mask;
-            
-            const resultByteIndex = Math.floor(bitsWritten / 8);
-            const resultBitIndex = bitsWritten % 8;
-
-            result[resultByteIndex] |= bits << (8 - resultBitIndex - bitsToRead);
-
-            bitsWritten += bitsToRead;
-            this.bitOffset += bitsToRead;
-        }
-
-        // Right-align all bits in the last byte
-        const remainingBits = count % 8;
-        if (remainingBits !== 0) {
-            result[result.length - 1] >>= 8 - remainingBits;
+            const bit = (this.data[byteIndex] >> bitIndex) & 1;
+            const resByteIndex = Math.floor(i / 8);
+            const resBitIndex = i % 8;
+            result[resByteIndex] |= bit << resBitIndex;
+            this.bitOffset++;
         }
 
         return result;
@@ -133,7 +171,6 @@ function parseSection(
             parsedSection.fields.push(...parsedField);
         }
     }
-
     return parsedSection;
 }
 
@@ -145,7 +182,6 @@ export function parseField(
     endianness: Endianness,
     path: string[] = []
 ): ParsedField[] {
-
     // check condition and skip if not met
     if (fieldDef.if && !checkFieldCondition(parsedSection, fieldDef.if)) {
         return [];
@@ -269,7 +305,7 @@ export function checkFieldCondition(
             parsedSection.fields,
         );
         if (!field) return false;
-        return "parsedValue" in field && Array.isArray(field.parsedValue) &&
+        return "parsedValue" in field && field.parsedValue != null && Array.isArray(condition.includes[1]) &&
             condition.includes[1].includes(field.parsedValue);
     } else if ("not" in condition) {
         return !checkFieldCondition(parsedSection, condition.not);
@@ -286,6 +322,15 @@ export function checkFieldCondition(
     }
 }
 
+function uint8ArrayToNumberLE(arr: Uint8Array): number {
+    if (arr.length > 6) throw new Error("Too many bytes for a safe JS number");
+    let num = 0;
+    for (let i = arr.length - 1; i >= 0; i--) {
+        num = (num << 8) | arr[i];
+    }
+    return num;
+}
+
 export function parseFieldValue(
     bytes: Uint8Array,
     parser: ValueParser,
@@ -297,21 +342,7 @@ export function parseFieldValue(
         }
         return bytes[0] !== 0;
     } else if (parser.type == "uint") {
-        if (bytes.length == 1) {
-            return bytes[0];
-        } else if (bytes.length == 2) {
-            return new DataView(bytes.buffer).getUint16(
-                0,
-                endianness === "little",
-            );
-        } else if (bytes.length == 4) {
-            return new DataView(bytes.buffer).getUint32(
-                0,
-                endianness === "little",
-            );
-        } else {
-            throw new Error("Unsupported byte length for integer");
-        }
+        return uint8ArrayToNumberLE(bytes);
     } else if (parser.type == "int") {
         if (bytes.length == 1) {
             return bytes[0];
@@ -412,7 +443,14 @@ export function parseFieldValue(
 
     throw new Error(`Unknown parser type: ${parser.type}`);
 }
-
+function numberToUint8ArrayLE(value: number, length: number): Uint8Array {
+    const arr = new Uint8Array(length);
+    for (let i = 0; i < length; i++) {
+        arr[i] = value & 0xff;
+        value = value >> 8;
+    }
+    return arr;
+}
 export function parseBitMasks(
     bytes: Uint8Array,
     bitMasks: BitMask[],
