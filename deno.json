@@ -7,6 +7,10 @@
         "./markdown-generator.ts": "./markdown-generator.ts"
     },
     "tasks": {
+        "test": "deno test --allow-read --allow-write --allow-net --unstable",
+        "lint": "deno lint",
+        "fmt": "deno fmt",
+        "check": "deno check",
         "build-npm": "deno run -A scripts/build-npm.ts",
         "generate-example-struct": "deno run -A scripts/generate-example-struct.ts",
         "generate-markdown": "deno run -A scripts/generate-markdown.ts"
