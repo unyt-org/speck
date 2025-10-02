@@ -151,7 +151,17 @@
                             "ReceiversWithKeys"
                         ]
                     },
-                    "parser": { "type": "endpoint" }
+                    "bitMasks": [
+                        {
+                            "name": "Receiver",
+                            "length": 168,
+                            "parser": { "type": "endpoint" }
+                        },
+                        {
+                            "name": "Key",
+                            "length": 4096
+                        }
+                    ]
                 },
                 {
                     "name": "Signature",

@@ -184,7 +184,7 @@ export function generateTable(
 /**
  * Check if a field or bitmask definition has a description, subfields, bitmasks, or is an enum parser.
  * @param field The field or bitmask definition to check.
- * @returns True if the field has a description, subfields, bitmasks, or is an enum parser; otherwise, false. 
+ * @returns True if the field has a description, subfields, bitmasks, or is an enum parser; otherwise, false.
  */
 function fieldHasDescription(
     field: FieldDefinition | BitMaskDefinition,

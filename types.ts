@@ -149,7 +149,6 @@ export type SectionDefinition = {
  */
 export type Endianness = "little" | "big";
 
-
 /**
  * Definition for a bit mask within a field.
  */
