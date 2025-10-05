@@ -21,7 +21,13 @@
             "oneOf": [
                 { "type": "string" },
                 { "type": "number" },
-                { "type": "boolean" }
+                { "type": "boolean" },
+                { "type": "null" },
+                { "type": "array", "items": { "$ref": "#/$defs/ParsedValue" } },
+                {
+                    "type": "object",
+                    "additionalProperties": { "$ref": "#/$defs/ParsedValue" }
+                }
             ]
         },
         "AndCondition": {
@@ -150,6 +156,8 @@
                                 "float",
                                 "string",
                                 "endpoint",
+                                "hex",
+                                "array",
                                 "pointer"
                             ]
                         }

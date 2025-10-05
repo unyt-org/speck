@@ -24,6 +24,7 @@ export function unregisterCustomParser(name: string) {
 }
 
 import type {
+    AssertCondition,
     BitMaskDefinition,
     Endianness,
     FieldCondition,
@@ -287,7 +288,47 @@ function parseField(
             });
         }
     }
+
+    if (
+        fieldDef.assert &&
+        !assertCondition(
+            fieldDef.repeat ? parsedFields : parsedFields[0],
+            fieldDef.assert,
+        )
+    ) {
+        throw new Error(
+            `Assertion failed for field ${path.join(".")}: ${
+                JSON.stringify(
+                    fieldDef.assert,
+                )
+            }`,
+        );
+    }
     return parsedFields;
+}
+
+function assertCondition(
+    parsedFields: ParsedField | ParsedField[],
+    condition: AssertCondition,
+): boolean {
+    if ("is" in condition) {
+        if (Array.isArray(parsedFields)) {
+            return parsedFields.every((field, index) => {
+                if (!("parsedValue" in field)) return false;
+                const expectedValue = Array.isArray(condition.is)
+                    ? condition.is[index]
+                    : condition.is;
+                return JSON.stringify(field.parsedValue) ===
+                    JSON.stringify(expectedValue);
+            });
+        } else {
+            if (!("parsedValue" in parsedFields)) return false;
+            return JSON.stringify(parsedFields.parsedValue) ===
+                JSON.stringify(condition.is);
+        }
+    } else {
+        throw new Error("Unknown assert condition type");
+    }
 }
 
 /**
@@ -479,8 +520,11 @@ function parseFieldValue(
             throw new Error(`Custom parser ${parser.name} not found`);
         }
         return customParser(bytes);
+    } else if (parser.type == "hex") {
+        return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+    } else if (parser.type == "array") {
+        return [...bytes];
     }
-
     throw new Error(`Unknown parser type: ${parser.type}`);
 }
 

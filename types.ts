@@ -1,7 +1,11 @@
 /**
  * Exported types for defining and parsing binary structures.
  */
-export type ParsedValue = string | number | boolean;
+type ParsedValueEntry = string | number | boolean | number[] | null | undefined;
+export type ParsedValue =
+    | ParsedValueEntry
+    | Record<string, ParsedValueEntry>
+    | ParsedValueEntry[];
 
 /**
  * And condition to include fields only if all conditions are met.
@@ -64,6 +68,11 @@ export type FieldCondition =
     | LessThanCondition
     | IncludesCondition;
 
+export type AssertIsCondition = {
+    is: ParsedValue;
+};
+export type AssertCondition = AssertIsCondition;
+
 /**
  * A mapping of enum values to their parsed representations.
  */
@@ -90,6 +99,8 @@ export type ValueParser =
             | "uint"
             | "float"
             | "string"
+            | "hex"
+            | "array"
             | "endpoint"
             | "pointer";
     };
@@ -111,6 +122,7 @@ export type BaseFieldDefinition = {
     byteSize: number;
     repeat?: string | number; // name of the field that indicates how many times to repeat or a fixed number
     if?: FieldCondition; // condition to include this field
+    assert?: AssertCondition; // condition to assert on this field's value
     parser?: ValueParser; // function to compute the parsed value based on other fields
 };
 
