@@ -5,6 +5,7 @@ import { parseStructure } from "./parser.ts";
 import type {
     FieldDefinition,
     ParsedField,
+    ParsedFieldWithSubFields,
     ParsedSection,
     ParsedStructure,
     ParsedValue,
@@ -111,18 +112,23 @@ function parsedFieldToJSON(
 ): FieldsJSON {
     const result: Record<string, FieldsJSON | null> = {};
     if ("subFields" in definition && definition.subFields) {
-        const current = field as ParsedField & { subFields: ParsedField[][] };
+        const current = field as ParsedFieldWithSubFields;
         for (const subFieldDef of definition.subFields) {
             if (subFieldDef.usage === "omit") continue;
-            const parsedSubFields = current.subFields.map((subFields) =>
-                subFields.find((f) => f.name === subFieldDef.name)
-            ).filter((f) => f !== undefined);
-            result[normalizeName(subFieldDef.name)] = parsedSubFields.length > 0
-                ? parsedFieldsToJSON(parsedSubFields, subFieldDef)
-                : null;
+            const parsedSubField = current.subFields.find((f) =>
+                f.name === subFieldDef.name
+            );
+            if (parsedSubField) {
+                result[normalizeName(subFieldDef.name)] = parsedSubField
+                    ? parsedFieldToJSON(
+                        parsedSubField,
+                        subFieldDef,
+                    )
+                    : null;
+            }
         }
     } else if ("bitMasks" in definition && definition.bitMasks) {
-        const current = field as ParsedField & { subFields: ParsedField[][] };
+        const current = field as ParsedFieldWithSubFields;
         for (const bitMask of definition.bitMasks) {
             if (bitMask.usage === "omit") continue;
             const bitMaskField = current.subFields.flat().find((f) =>

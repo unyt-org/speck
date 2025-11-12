@@ -177,7 +177,7 @@ export type BitMaskDefinition = {
  * A parsed field which can either have sub-fields or a direct parsed value.
  */
 export type ParsedFieldWithSubFields = {
-    subFields: ParsedField[][];
+    subFields: ParsedField[];
 };
 
 /**

@@ -251,7 +251,7 @@ function parseField(
                     endianness,
                     [...path, subField.name],
                 )
-            );
+            ).flat();
             parsedFields.push({
                 ...fieldDef.id && { id: fieldDef.id },
                 name: fieldDef.name,
@@ -272,9 +272,7 @@ function parseField(
                 ...fieldDef.id && { id: fieldDef.id },
                 name: fieldDef.name,
                 bytes,
-                subFields: [
-                    parseBitMasks(bytes, fieldDef.bitMasks, endianness),
-                ],
+                subFields: parseBitMasks(bytes, fieldDef.bitMasks, endianness),
             });
         } // direct field
         else {
@@ -571,9 +569,8 @@ function findFieldById(
     for (const field of fields) {
         if (field.id === id) return field;
         if ("subFields" in field) {
-            for (const subFields of field.subFields) {
-                const subField = findFieldById(id, subFields);
-                if (subField) return subField;
+            for (const subField of field.subFields) {
+                if (subField.id === id) return subField;
             }
         }
     }

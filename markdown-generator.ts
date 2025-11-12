@@ -3,7 +3,7 @@
  * @module markdown-generator
  */
 
-import { walk } from "jsr:@std/fs@1/walk";
+import { walk } from "@std/fs/walk";
 import { generateTable } from "./generator.ts";
 import type { SectionDefinition, StructureDefinition } from "./types.ts";
 

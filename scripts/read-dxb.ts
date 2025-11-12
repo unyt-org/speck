@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --allow-read
-import { exists } from "jsr:@std/fs/exists";
+import { exists } from "@std/fs/exists";
 import { parseAndPackStructure } from "../packer.ts";
 import dxbStructure from "../examples/dxb.json" with { type: "json" };
 import type { StructureDefinition } from "../types.ts";
