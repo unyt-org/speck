@@ -71,3 +71,33 @@ Deno.test("endpoint person", () => {
         testsection: { endpoint: `@jonas` },
     });
 });
+
+Deno.test("endpoint anonymous", () => {
+    const data = new Uint8Array([
+        2,
+        198,
+        216,
+        67,
+        251,
+        161,
+        123,
+        245,
+        31,
+        78,
+        104,
+        250,
+        99,
+        199,
+        9,
+        104,
+        179,
+        77,
+        244,
+        0,
+        0,
+    ]);
+    const parsed = parseAndPackStructure(struct, data);
+    assertEquals(parsed, {
+        testsection: { endpoint: `@@c6d843fba17bf51f4e68fa63c70968b34df4` },
+    });
+});

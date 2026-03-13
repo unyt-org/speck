@@ -493,10 +493,13 @@ function parseFieldValue(
             : instance == MAX_UINT16
             ? "*"
             : instance.toString();
-
         let id: string;
         if (idBytes.every((b) => b === 0)) {
             id = "local";
+        } else if (type === 2) {
+            id = [...idBytes].map((b) => b.toString(16).padStart(2, "0")).join(
+                "",
+            );
         } else {
             const decoder = new TextDecoder("utf-8");
             id = decoder.decode(idBytes).replace(/\0.*$/g, "");
