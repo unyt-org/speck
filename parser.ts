@@ -44,6 +44,8 @@ import type {
 export interface Uint8ArrayReader {
     readBytes(count: number, fieldPath: string[]): Uint8Array;
     peekBytes(count: number, fieldPath: string[]): Uint8Array;
+    getTotalBytes(): number;
+    getReadBytes(): number;
 }
 
 /**
@@ -81,6 +83,14 @@ export class DefaultUint8ArrayReader implements Uint8ArrayReader {
             throw new Error("Attempt to read beyond end of data");
         }
         return this.data.slice(this.offset, this.offset + count);
+    }
+
+    getTotalBytes(): number {
+        return this.data.length;
+    }
+
+    getReadBytes(): number {
+        return this.offset;
     }
 }
 
@@ -241,7 +251,10 @@ function parseField(
     for (let i = 0; i < repeatCount; i++) {
         // return sub fields
         if ("subFields" in fieldDef && fieldDef.subFields) {
-            const bytes = reader.peekBytes(fieldDef.byteSize, path);
+            const byteSize = fieldDef.byteSize === "remaining"
+                ? reader.getTotalBytes() - reader.getReadBytes()
+                : fieldDef.byteSize;
+            const bytes = reader.peekBytes(byteSize, path);
             const subFields = fieldDef.subFields.map((subField) =>
                 parseField(
                     sectionDef,
@@ -264,7 +277,10 @@ function parseField(
             continue;
         }
 
-        const bytes = reader.readBytes(fieldDef.byteSize, path);
+        const byteSize = fieldDef.byteSize === "remaining"
+            ? reader.getTotalBytes() - reader.getReadBytes()
+            : fieldDef.byteSize;
+        const bytes = reader.readBytes(byteSize, path);
 
         // bit masks
         if ("bitMasks" in fieldDef) {

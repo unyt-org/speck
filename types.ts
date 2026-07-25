@@ -119,7 +119,7 @@ export type BaseFieldDefinition = {
     description?: string;
     category?: string;
     usage?: Usage;
-    byteSize: number;
+    byteSize: number | "remaining"; // size of the field in bytes or "remaining" for the rest of the structure
     repeat?: string | number; // name of the field that indicates how many times to repeat or a fixed number
     if?: FieldCondition; // condition to include this field
     assert?: AssertCondition; // condition to assert on this field's value

@@ -75,6 +75,14 @@ export class Uint8ArrayGeneratorReader implements Uint8ArrayReader {
     peekBytes(count: number, fieldPath: string[]): Uint8Array {
         return this.readBytes(count, fieldPath);
     }
+
+    getTotalBytes(): number {
+        return 0; // Not applicable for generator reader
+    }
+
+    getReadBytes(): number {
+        return 0; // Not applicable for generator reader
+    }
 }
 
 /**
@@ -358,11 +366,23 @@ function generateFieldName(
 function getFieldType(field: FieldDefinition | BitMaskDefinition): string {
     if ("parser" in field) {
         if (field.parser?.type == "uint") {
-            return "byteSize" in field ? `uint${field.byteSize * 8}` : `uint`;
+            return "byteSize" in field
+                ? (field.byteSize === "remaining"
+                    ? `uint (unknown size)`
+                    : `uint${field.byteSize * 8}`)
+                : `uint`;
         } else if (field.parser?.type == "int") {
-            return "byteSize" in field ? `int${field.byteSize * 8}` : `int`;
+            return "byteSize" in field
+                ? (field.byteSize === "remaining"
+                    ? `int (unknown size)`
+                    : `int${field.byteSize * 8}`)
+                : `int`;
         } else if (field.parser?.type == "float") {
-            return "byteSize" in field ? `float${field.byteSize * 8}` : `float`;
+            return "byteSize" in field
+                ? (field.byteSize === "remaining"
+                    ? `float (unknown size)`
+                    : `float${field.byteSize * 8}`)
+                : `float`;
         } else if (field.parser?.type == "enum") {
             return `enum`;
         } else {
