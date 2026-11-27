@@ -512,8 +512,12 @@ function parseFieldValue(
         let id: string;
         if (idBytes.every((b) => b === 0)) {
             id = "local";
-        } else if (type === 2) {
-            id = [...idBytes].map((b) => b.toString(16).padStart(2, "0")).join(
+        } else if (idBytes.every((b) => b === 0xFF)) {
+            id = "any";
+        } else if (type > 1) {
+            id = [...idBytes].map((b) =>
+                b.toString(16).toUpperCase().padStart(2, "0")
+            ).join(
                 "",
             );
         } else {

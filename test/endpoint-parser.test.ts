@@ -98,6 +98,6 @@ Deno.test("endpoint anonymous", () => {
     ]);
     const parsed = parseAndPackStructure(struct, data);
     assertEquals(parsed, {
-        testsection: { endpoint: `@@c6d843fba17bf51f4e68fa63c70968b34df4` },
+        testsection: { endpoint: `@@C6D843FBA17BF51F4E68FA63C70968B34DF4` },
     });
 });
